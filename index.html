@@ -459,7 +459,9 @@
         <tr>
           <th>المنتج</th>
           <th>الفئة</th>
-          <th>السعر</th>
+          <th>سعر الشراء</th>
+          <th>سعر البيع</th>
+          <th>هامش الربح</th>
           <th>المخزون</th>
           <th>الحالة</th>
           <th>إجراءات</th>
@@ -478,16 +480,24 @@
   </div>
   <div class="stats-grid">
     <div class="stat-card">
-      <div class="stat-label">إجمالي مبيعات اليوم</div>
+      <div class="stat-label">مبيعات اليوم</div>
       <div class="stat-value green" id="todaySales">0 ج</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">🟢 ربح اليوم</div>
+      <div class="stat-value green" id="todayProfit">0 ج</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">عدد الفواتير اليوم</div>
       <div class="stat-value purple" id="todayCount">0</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">إجمالي كل الوقت</div>
+      <div class="stat-label">إجمالي المبيعات</div>
       <div class="stat-value yellow" id="allTimeSales">0 ج</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">🟢 إجمالي الأرباح</div>
+      <div class="stat-value green" id="allTimeProfit">0 ج</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">عدد المنتجات</div>
@@ -505,6 +515,7 @@
           <th>المجموع</th>
           <th>الخصم</th>
           <th>الإجمالي</th>
+          <th>الربح</th>
         </tr>
       </thead>
       <tbody id="salesTable"></tbody>
@@ -559,17 +570,23 @@
     </div>
     <div class="form-row">
       <div class="form-group">
-        <label>السعر (جنيه) *</label>
+        <label>سعر الشراء (جنيه) *</label>
+        <input type="number" id="fCost" placeholder="0" min="0" />
+      </div>
+      <div class="form-group">
+        <label>سعر البيع (جنيه) *</label>
         <input type="number" id="fPrice" placeholder="0" min="0" />
       </div>
+    </div>
+    <div class="form-row">
       <div class="form-group">
         <label>الكمية في المخزون *</label>
         <input type="number" id="fStock" placeholder="0" min="0" />
       </div>
-    </div>
-    <div class="form-group">
-      <label>الرمز (إيموجي)</label>
-      <input type="text" id="fIcon" placeholder="🧴" maxlength="4" />
+      <div class="form-group">
+        <label>الرمز (إيموجي)</label>
+        <input type="text" id="fIcon" placeholder="🧴" maxlength="4" />
+      </div>
     </div>
     <input type="hidden" id="fId" />
     <div class="modal-actions">
@@ -593,14 +610,14 @@ let cart     = [];
 // Seed demo products if empty
 if (products.length === 0) {
   products = [
-    { id: uid(), name: 'كريم مرطب للوجه', category: 'عناية بالبشرة', price: 85, stock: 30, icon: '🧴' },
-    { id: uid(), name: 'شامبو بالكيراتين', category: 'عناية بالشعر', price: 120, stock: 20, icon: '🧹' },
-    { id: uid(), name: 'صابون طبيعي', category: 'عناية بالجسم', price: 35, stock: 50, icon: '🧼' },
-    { id: uid(), name: 'معطر منزل', category: 'منظفات', price: 60, stock: 15, icon: '🌸' },
-    { id: uid(), name: 'كريم تفتيح', category: 'عناية بالبشرة', price: 150, stock: 10, icon: '✨' },
-    { id: uid(), name: 'زيت شعر أرجان', category: 'عناية بالشعر', price: 200, stock: 8, icon: '💧' },
-    { id: uid(), name: 'مزيل عرق', category: 'عناية بالجسم', price: 45, stock: 40, icon: '💨' },
-    { id: uid(), name: 'كريم يدين', category: 'عناية بالجسم', price: 30, stock: 25, icon: '🤲' },
+    { id: uid(), name: 'كريم مرطب للوجه', category: 'عناية بالبشرة', price: 85, cost: 50, stock: 30, icon: '🧴' },
+    { id: uid(), name: 'شامبو بالكيراتين', category: 'عناية بالشعر', price: 120, cost: 70, stock: 20, icon: '🧹' },
+    { id: uid(), name: 'صابون طبيعي', category: 'عناية بالجسم', price: 35, cost: 20, stock: 50, icon: '🧼' },
+    { id: uid(), name: 'معطر منزل', category: 'منظفات', price: 60, cost: 35, stock: 15, icon: '🌸' },
+    { id: uid(), name: 'كريم تفتيح', category: 'عناية بالبشرة', price: 150, cost: 90, stock: 10, icon: '✨' },
+    { id: uid(), name: 'زيت شعر أرجان', category: 'عناية بالشعر', price: 200, cost: 120, stock: 8, icon: '💧' },
+    { id: uid(), name: 'مزيل عرق', category: 'عناية بالجسم', price: 45, cost: 25, stock: 40, icon: '💨' },
+    { id: uid(), name: 'كريم يدين', category: 'عناية بالجسم', price: 30, cost: 15, stock: 25, icon: '🤲' },
   ];
   saveProducts();
 }
@@ -666,7 +683,7 @@ function addToCart(id) {
     if (existing.qty >= p.stock) { showToast('لا يوجد مخزون كافي', true); return; }
     existing.qty++;
   } else {
-    cart.push({ id: p.id, name: p.name, price: p.price, qty: 1 });
+    cart.push({ id: p.id, name: p.name, price: p.price, cost: p.cost || 0, qty: 1 });
   }
   renderCart();
   showToast(`✅ تمت إضافة ${p.name}`);
@@ -763,7 +780,9 @@ function calcChange() {
 function confirmSale() {
   const discount = parseFloat(document.getElementById('discountInput').value) || 0;
   const subtotal = cart.reduce((s, c) => s + c.price * c.qty, 0);
+  const totalCost = cart.reduce((s, c) => s + (c.cost || 0) * c.qty, 0);
   const grand    = Math.max(0, subtotal - discount);
+  const profit   = Math.max(0, grand - totalCost);
 
   // Deduct stock
   cart.forEach(c => {
@@ -776,10 +795,11 @@ function confirmSale() {
   sales.unshift({
     id: uid(),
     date: new Date().toISOString(),
-    items: cart.map(c => ({ name: c.name, qty: c.qty, price: c.price })),
+    items: cart.map(c => ({ name: c.name, qty: c.qty, price: c.price, cost: c.cost || 0 })),
     subtotal,
     discount,
-    grand
+    grand,
+    profit
   });
   saveSales();
 
@@ -793,11 +813,15 @@ function confirmSale() {
 //  PRODUCTS TABLE
 // ═══════════════════════════════════════════
 function renderProductsTable() {
-  document.getElementById('productsTable').innerHTML = products.map(p => `
+  document.getElementById('productsTable').innerHTML = products.map(p => {
+    const margin = p.cost > 0 ? Math.round(((p.price - p.cost) / p.price) * 100) : 0;
+    return `
     <tr>
       <td>${p.icon || '📦'} ${p.name}</td>
       <td>${p.category}</td>
+      <td style="color:var(--red);">${fmt(p.cost || 0)}</td>
       <td style="color:var(--accent2);font-weight:700;">${fmt(p.price)}</td>
+      <td style="color:var(--green);font-weight:700;">${fmt(p.price - (p.cost||0))} <span style="font-size:0.75rem;color:var(--muted)">(${margin}%)</span></td>
       <td>${p.stock}</td>
       <td>
         <span class="badge ${p.stock === 0 ? 'badge-red' : p.stock <= 5 ? 'badge-yellow' : 'badge-green'}">
@@ -811,7 +835,7 @@ function renderProductsTable() {
         </div>
       </td>
     </tr>
-  `).join('');
+  `}).join('');
 }
 
 function deleteProduct(id) {
@@ -832,6 +856,7 @@ function openProductForm(id) {
   document.getElementById('fId').value       = p ? p.id : '';
   document.getElementById('fName').value     = p ? p.name : '';
   document.getElementById('fCategory').value = p ? p.category : 'عناية بالبشرة';
+  document.getElementById('fCost').value     = p ? (p.cost || '') : '';
   document.getElementById('fPrice').value    = p ? p.price : '';
   document.getElementById('fStock').value    = p ? p.stock : '';
   document.getElementById('fIcon').value     = p ? p.icon : '🧴';
@@ -845,20 +870,21 @@ function closeProductForm() {
 function saveProduct() {
   const id    = document.getElementById('fId').value;
   const name  = document.getElementById('fName').value.trim();
+  const cost  = parseFloat(document.getElementById('fCost').value);
   const price = parseFloat(document.getElementById('fPrice').value);
   const stock = parseInt(document.getElementById('fStock').value);
   const cat   = document.getElementById('fCategory').value;
   const icon  = document.getElementById('fIcon').value.trim() || '📦';
 
-  if (!name || isNaN(price) || isNaN(stock)) {
+  if (!name || isNaN(cost) || isNaN(price) || isNaN(stock)) {
     showToast('من فضلك اكمل البيانات المطلوبة', true); return;
   }
 
   if (id) {
     const p = products.find(x => x.id === id);
-    if (p) Object.assign(p, { name, price, stock, category: cat, icon });
+    if (p) Object.assign(p, { name, cost, price, stock, category: cat, icon });
   } else {
-    products.push({ id: uid(), name, price, stock, category: cat, icon });
+    products.push({ id: uid(), name, cost, price, stock, category: cat, icon });
   }
 
   saveProducts();
@@ -874,13 +900,15 @@ function renderReports() {
   const today = new Date().toDateString();
   const todaySales = sales.filter(s => new Date(s.date).toDateString() === today);
 
-  document.getElementById('todaySales').textContent   = fmt(todaySales.reduce((s,x) => s + x.grand, 0));
-  document.getElementById('todayCount').textContent   = todaySales.length;
-  document.getElementById('allTimeSales').textContent = fmt(sales.reduce((s,x) => s + x.grand, 0));
-  document.getElementById('totalProducts').textContent = products.length;
+  document.getElementById('todaySales').textContent    = fmt(todaySales.reduce((s,x) => s + x.grand, 0));
+  document.getElementById('todayProfit').textContent   = fmt(todaySales.reduce((s,x) => s + (x.profit || 0), 0));
+  document.getElementById('todayCount').textContent    = todaySales.length;
+  document.getElementById('allTimeSales').textContent  = fmt(sales.reduce((s,x) => s + x.grand, 0));
+  document.getElementById('allTimeProfit').textContent = fmt(sales.reduce((s,x) => s + (x.profit || 0), 0));
+  document.getElementById('totalProducts').textContent  = products.length;
 
   document.getElementById('salesTable').innerHTML = sales.length === 0
-    ? '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:30px;">لا توجد مبيعات بعد</td></tr>'
+    ? '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:30px;">لا توجد مبيعات بعد</td></tr>'
     : sales.map((s, i) => `
     <tr>
       <td>#${sales.length - i}</td>
@@ -888,7 +916,8 @@ function renderReports() {
       <td style="font-size:0.8rem;">${s.items.map(x => `${x.name}×${x.qty}`).join('، ')}</td>
       <td>${fmt(s.subtotal)}</td>
       <td style="color:var(--red);">-${fmt(s.discount)}</td>
-      <td style="color:var(--green);font-weight:700;">${fmt(s.grand)}</td>
+      <td style="color:var(--accent2);font-weight:700;">${fmt(s.grand)}</td>
+      <td style="color:var(--green);font-weight:700;">${fmt(s.profit || 0)}</td>
     </tr>
   `).join('');
 }
