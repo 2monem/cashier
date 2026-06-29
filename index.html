@@ -6,396 +6,173 @@
   <title>كاشير | نظام نقطة البيع</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
-
     :root {
-      --bg: #0f1117;
-      --surface: #1a1d27;
-      --surface2: #22263a;
-      --border: #2e3248;
-      --accent: #6c63ff;
-      --accent2: #a78bfa;
-      --green: #22c55e;
-      --red: #ef4444;
-      --yellow: #f59e0b;
-      --text: #e8eaf6;
-      --muted: #8b92b8;
-      --radius: 14px;
-      --shadow: 0 4px 24px rgba(0,0,0,0.4);
+      --bg:#0f1117;--surface:#1a1d27;--surface2:#22263a;--border:#2e3248;
+      --accent:#6c63ff;--accent2:#a78bfa;--green:#22c55e;--red:#ef4444;
+      --yellow:#f59e0b;--text:#e8eaf6;--muted:#8b92b8;--radius:14px;
+      --shadow:0 4px 24px rgba(0,0,0,0.4);
+    }
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+    /* HEADER */
+    header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:100;}
+    .logo{font-size:1.3rem;font-weight:900;color:var(--accent2);}
+    .logo span{color:var(--text);}
+    nav{display:flex;gap:4px;}
+    nav button{background:none;border:none;color:var(--muted);font-family:'Cairo',sans-serif;font-size:0.92rem;padding:8px 16px;border-radius:8px;cursor:pointer;transition:all .2s;}
+    nav button:hover{background:var(--surface2);color:var(--text);}
+    nav button.active{background:var(--accent);color:#fff;}
+    .header-date{font-size:0.82rem;color:var(--muted);}
+
+    /* LOW STOCK ALERT BANNER */
+    .alert-banner{background:rgba(245,158,11,0.15);border:1px solid var(--yellow);border-radius:10px;padding:12px 16px;margin:0 24px 0;display:none;align-items:center;gap:10px;font-size:0.88rem;color:var(--yellow);font-weight:700;}
+    .alert-banner.show{display:flex;}
+    .alert-banner ul{margin:0;padding-right:16px;font-weight:400;color:var(--text);}
+
+    /* PAGES */
+    .page{display:none;padding:24px;}
+    .page.active{display:block;}
+
+    /* SALE */
+    .sale-layout{display:grid;grid-template-columns:1fr 380px;gap:20px;height:calc(100vh - 108px);}
+    .products-panel{display:flex;flex-direction:column;gap:16px;overflow:hidden;}
+    .search-bar input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Cairo',sans-serif;font-size:1rem;padding:12px 16px;outline:none;transition:border-color .2s;}
+    .search-bar input:focus{border-color:var(--accent);}
+    .search-bar input::placeholder{color:var(--muted);}
+    .products-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;overflow-y:auto;padding-bottom:8px;}
+    .products-grid::-webkit-scrollbar{width:6px;}
+    .products-grid::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+    .product-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 12px;cursor:pointer;transition:all .2s;text-align:center;user-select:none;}
+    .product-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:var(--shadow);}
+    .product-card .p-icon{font-size:2rem;margin-bottom:8px;}
+    .product-card .p-name{font-weight:700;font-size:0.88rem;margin-bottom:4px;line-height:1.3;}
+    .product-card .p-price{color:var(--accent2);font-weight:700;font-size:0.95rem;}
+    .product-card .p-stock{font-size:0.75rem;color:var(--muted);margin-top:4px;}
+    .product-card.low-stock .p-stock{color:var(--yellow);}
+    .product-card.out-of-stock{opacity:.4;cursor:not-allowed;}
+
+    /* CART */
+    .cart-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);display:flex;flex-direction:column;overflow:hidden;}
+    .cart-header{padding:16px 20px;border-bottom:1px solid var(--border);font-weight:700;font-size:1rem;display:flex;justify-content:space-between;align-items:center;}
+    .cart-badge{background:var(--accent);color:#fff;font-size:0.75rem;padding:2px 8px;border-radius:20px;font-weight:700;}
+    .cart-items{flex:1;overflow-y:auto;padding:12px;}
+    .cart-items::-webkit-scrollbar{width:4px;}
+    .cart-items::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+    .cart-empty{text-align:center;color:var(--muted);padding:40px 20px;font-size:.9rem;}
+    .cart-empty .empty-icon{font-size:3rem;display:block;margin-bottom:10px;}
+    .cart-item{background:var(--surface2);border-radius:10px;padding:10px 12px;margin-bottom:8px;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;}
+    .ci-name{font-weight:700;font-size:.88rem;margin-bottom:2px;}
+    .ci-price{font-size:.8rem;color:var(--muted);}
+    .ci-controls{display:flex;align-items:center;gap:8px;}
+    .ci-controls button{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+    .ci-controls button:hover{background:var(--accent);border-color:var(--accent);}
+    .ci-controls .qty{font-weight:700;min-width:24px;text-align:center;font-size:.95rem;}
+    .ci-del{background:none;border:none;color:var(--red);font-size:1rem;cursor:pointer;padding:4px;border-radius:6px;}
+    .ci-del:hover{background:rgba(239,68,68,.15);}
+    .cart-footer{padding:16px;border-top:1px solid var(--border);}
+    .totals{margin-bottom:16px;}
+    .total-row{display:flex;justify-content:space-between;font-size:.88rem;padding:4px 0;color:var(--muted);}
+    .total-row.grand{font-size:1.1rem;font-weight:900;color:var(--text);border-top:1px solid var(--border);margin-top:8px;padding-top:10px;}
+    .total-row.grand span:last-child{color:var(--accent2);}
+    .discount-row{display:flex;gap:8px;margin-bottom:12px;}
+    .discount-row input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Cairo',sans-serif;font-size:.9rem;padding:8px 12px;outline:none;}
+    .discount-row input:focus{border-color:var(--yellow);}
+    .discount-row input::placeholder{color:var(--muted);}
+    .discount-row label{font-size:.82rem;color:var(--muted);display:flex;align-items:center;}
+    .btn{width:100%;padding:14px;border-radius:10px;border:none;font-family:'Cairo',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:all .2s;}
+    .btn-primary{background:var(--accent);color:#fff;}
+    .btn-primary:hover{background:#5a52e0;transform:translateY(-1px);}
+    .btn-danger{background:rgba(239,68,68,.15);color:var(--red);margin-top:8px;}
+    .btn-danger:hover{background:rgba(239,68,68,.25);}
+    .btn:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+
+    /* MODAL */
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:center;justify-content:center;}
+    .modal-overlay.open{display:flex;}
+    .modal{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:32px;width:min(520px,94vw);box-shadow:var(--shadow);text-align:center;max-height:90vh;overflow-y:auto;}
+    .modal h2{font-size:1.4rem;margin-bottom:6px;}
+    .modal p{color:var(--muted);margin-bottom:24px;font-size:.9rem;}
+    .receipt{background:var(--surface2);border-radius:12px;padding:20px;margin-bottom:20px;text-align:right;}
+    .receipt-row{display:flex;justify-content:space-between;padding:5px 0;font-size:.88rem;border-bottom:1px dashed var(--border);}
+    .receipt-row:last-child{border:none;font-weight:700;color:var(--accent2);font-size:1rem;}
+    .modal-actions{display:flex;gap:10px;}
+    .modal-actions .btn{flex:1;}
+
+    /* PRODUCTS TABLE */
+    .page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;}
+    .page-title{font-size:1.4rem;font-weight:900;}
+    .btn-sm{padding:10px 20px;border-radius:10px;border:none;font-family:'Cairo',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;background:var(--accent);color:#fff;transition:all .2s;}
+    .btn-sm:hover{background:#5a52e0;}
+    .table-wrap{overflow-x:auto;}
+    table{width:100%;border-collapse:collapse;}
+    th,td{padding:14px 16px;text-align:right;font-size:.9rem;border-bottom:1px solid var(--border);}
+    th{background:var(--surface);font-weight:700;color:var(--muted);font-size:.8rem;}
+    tr:hover td{background:var(--surface2);}
+    .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.78rem;font-weight:700;}
+    .badge-green{background:rgba(34,197,94,.15);color:var(--green);}
+    .badge-red{background:rgba(239,68,68,.15);color:var(--red);}
+    .badge-yellow{background:rgba(245,158,11,.15);color:var(--yellow);}
+    .action-btns{display:flex;gap:6px;}
+    .action-btn{padding:6px 12px;border-radius:7px;border:1px solid var(--border);background:none;color:var(--text);font-family:'Cairo',sans-serif;font-size:.8rem;cursor:pointer;transition:all .15s;}
+    .action-btn:hover{background:var(--surface2);}
+    .action-btn.del:hover{border-color:var(--red);color:var(--red);}
+
+    /* FORM */
+    .form-group{margin-bottom:16px;text-align:right;}
+    .form-group label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:6px;font-weight:600;}
+    .form-group input,.form-group select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Cairo',sans-serif;font-size:.95rem;padding:11px 14px;outline:none;transition:border-color .2s;}
+    .form-group input:focus,.form-group select:focus{border-color:var(--accent);}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+    /* REPORTS */
+    .stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px;margin-bottom:28px;}
+    .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;}
+    .stat-label{font-size:.82rem;color:var(--muted);margin-bottom:8px;font-weight:600;}
+    .stat-value{font-size:1.6rem;font-weight:900;}
+    .stat-value.green{color:var(--green);}
+    .stat-value.purple{color:var(--accent2);}
+    .stat-value.yellow{color:var(--yellow);}
+    .section-title{font-size:1rem;font-weight:700;margin-bottom:14px;color:var(--muted);}
+
+    /* DATE FILTER */
+    .filter-bar{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;align-items:center;}
+    .filter-btn{padding:8px 16px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--muted);font-family:'Cairo',sans-serif;font-size:.85rem;cursor:pointer;transition:all .2s;}
+    .filter-btn:hover{background:var(--surface2);color:var(--text);}
+    .filter-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+    .filter-bar input[type=date]{background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Cairo',sans-serif;font-size:.85rem;padding:8px 12px;outline:none;}
+
+    /* PRINT */
+    .print-area{display:none;}
+    @media print{
+      body > *{display:none !important;}
+      .print-area{display:block !important;font-family:'Cairo',sans-serif;padding:20px;direction:rtl;}
+      .print-header{text-align:center;border-bottom:2px solid #000;padding-bottom:10px;margin-bottom:16px;}
+      .print-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #ccc;font-size:14px;}
+      .print-total{font-size:18px;font-weight:900;text-align:center;margin-top:12px;border-top:2px solid #000;padding-top:10px;}
+      .print-footer{text-align:center;margin-top:16px;font-size:12px;color:#666;}
     }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    /* TOAST */
+    .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--green);color:#fff;padding:12px 24px;border-radius:30px;font-weight:700;font-size:.9rem;z-index:999;transition:transform .3s ease;white-space:nowrap;}
+    .toast.show{transform:translateX(-50%) translateY(0);}
+    .toast.error{background:var(--red);}
+    .toast.warn{background:var(--yellow);}
 
-    body {
-      font-family: 'Cairo', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-    }
-
-    /* ───── HEADER ───── */
-    header {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 0 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: 60px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-    .logo { font-size: 1.3rem; font-weight: 900; color: var(--accent2); letter-spacing: -0.5px; }
-    .logo span { color: var(--text); }
-
-    nav { display: flex; gap: 4px; }
-    nav button {
-      background: none;
-      border: none;
-      color: var(--muted);
-      font-family: 'Cairo', sans-serif;
-      font-size: 0.92rem;
-      padding: 8px 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    nav button:hover { background: var(--surface2); color: var(--text); }
-    nav button.active { background: var(--accent); color: #fff; }
-
-    .header-date { font-size: 0.82rem; color: var(--muted); }
-
-    /* ───── PAGES ───── */
-    .page { display: none; padding: 24px; }
-    .page.active { display: block; }
-
-    /* ───── SALE PAGE ───── */
-    .sale-layout {
-      display: grid;
-      grid-template-columns: 1fr 380px;
-      gap: 20px;
-      height: calc(100vh - 108px);
-    }
-
-    /* Search + Products */
-    .products-panel { display: flex; flex-direction: column; gap: 16px; overflow: hidden; }
-
-    .search-bar {
-      display: flex;
-      gap: 10px;
-    }
-    .search-bar input {
-      flex: 1;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      color: var(--text);
-      font-family: 'Cairo', sans-serif;
-      font-size: 1rem;
-      padding: 12px 16px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    .search-bar input:focus { border-color: var(--accent); }
-    .search-bar input::placeholder { color: var(--muted); }
-
-    .products-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-      gap: 12px;
-      overflow-y: auto;
-      padding-bottom: 8px;
-    }
-    .products-grid::-webkit-scrollbar { width: 6px; }
-    .products-grid::-webkit-scrollbar-track { background: transparent; }
-    .products-grid::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-
-    .product-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 16px 12px;
-      cursor: pointer;
-      transition: all 0.2s;
-      text-align: center;
-      user-select: none;
-    }
-    .product-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--shadow); }
-    .product-card:active { transform: translateY(0); }
-    .product-card .p-icon { font-size: 2rem; margin-bottom: 8px; }
-    .product-card .p-name { font-weight: 700; font-size: 0.88rem; margin-bottom: 4px; line-height: 1.3; }
-    .product-card .p-price { color: var(--accent2); font-weight: 700; font-size: 0.95rem; }
-    .product-card .p-stock { font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
-    .product-card.out-of-stock { opacity: 0.4; cursor: not-allowed; }
-
-    /* Cart / Invoice Panel */
-    .cart-panel {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-    .cart-header {
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--border);
-      font-weight: 700;
-      font-size: 1rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .cart-badge {
-      background: var(--accent);
-      color: #fff;
-      font-size: 0.75rem;
-      padding: 2px 8px;
-      border-radius: 20px;
-      font-weight: 700;
-    }
-
-    .cart-items { flex: 1; overflow-y: auto; padding: 12px; }
-    .cart-items::-webkit-scrollbar { width: 4px; }
-    .cart-items::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-    .cart-empty { text-align: center; color: var(--muted); padding: 40px 20px; font-size: 0.9rem; }
-    .cart-empty .empty-icon { font-size: 3rem; display: block; margin-bottom: 10px; }
-
-    .cart-item {
-      background: var(--surface2);
-      border-radius: 10px;
-      padding: 10px 12px;
-      margin-bottom: 8px;
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 8px;
-      align-items: center;
-    }
-    .ci-name { font-weight: 700; font-size: 0.88rem; margin-bottom: 2px; }
-    .ci-price { font-size: 0.8rem; color: var(--muted); }
-    .ci-controls { display: flex; align-items: center; gap: 8px; }
-    .ci-controls button {
-      width: 28px; height: 28px;
-      border-radius: 6px;
-      border: 1px solid var(--border);
-      background: var(--surface);
-      color: var(--text);
-      font-size: 1rem;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      transition: all 0.15s;
-    }
-    .ci-controls button:hover { background: var(--accent); border-color: var(--accent); }
-    .ci-controls .qty { font-weight: 700; min-width: 24px; text-align: center; font-size: 0.95rem; }
-    .ci-del { background: none; border: none; color: var(--red); font-size: 1rem; cursor: pointer; padding: 4px; border-radius: 6px; }
-    .ci-del:hover { background: rgba(239,68,68,0.15); }
-
-    .cart-footer { padding: 16px; border-top: 1px solid var(--border); }
-
-    .totals { margin-bottom: 16px; }
-    .total-row {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.88rem;
-      padding: 4px 0;
-      color: var(--muted);
-    }
-    .total-row.grand {
-      font-size: 1.1rem;
-      font-weight: 900;
-      color: var(--text);
-      border-top: 1px solid var(--border);
-      margin-top: 8px;
-      padding-top: 10px;
-    }
-    .total-row.grand span:last-child { color: var(--accent2); }
-
-    .discount-row { display: flex; gap: 8px; margin-bottom: 12px; }
-    .discount-row input {
-      flex: 1;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text);
-      font-family: 'Cairo', sans-serif;
-      font-size: 0.9rem;
-      padding: 8px 12px;
-      outline: none;
-    }
-    .discount-row input:focus { border-color: var(--yellow); }
-    .discount-row input::placeholder { color: var(--muted); }
-    .discount-row label { font-size: 0.82rem; color: var(--muted); display: flex; align-items: center; }
-
-    .btn {
-      width: 100%;
-      padding: 14px;
-      border-radius: 10px;
-      border: none;
-      font-family: 'Cairo', sans-serif;
-      font-size: 1rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .btn-primary { background: var(--accent); color: #fff; }
-    .btn-primary:hover { background: #5a52e0; transform: translateY(-1px); }
-    .btn-danger { background: rgba(239,68,68,0.15); color: var(--red); margin-top: 8px; }
-    .btn-danger:hover { background: rgba(239,68,68,0.25); }
-    .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-
-    /* ───── MODAL ───── */
-    .modal-overlay {
-      display: none;
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,0.7);
-      z-index: 200;
-      align-items: center;
-      justify-content: center;
-    }
-    .modal-overlay.open { display: flex; }
-    .modal {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 32px;
-      width: min(480px, 94vw);
-      box-shadow: var(--shadow);
-      text-align: center;
-    }
-    .modal h2 { font-size: 1.4rem; margin-bottom: 6px; }
-    .modal p { color: var(--muted); margin-bottom: 24px; font-size: 0.9rem; }
-    .receipt { background: var(--surface2); border-radius: 12px; padding: 20px; margin-bottom: 20px; text-align: right; }
-    .receipt-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 0.88rem; border-bottom: 1px dashed var(--border); }
-    .receipt-row:last-child { border: none; font-weight: 700; color: var(--accent2); font-size: 1rem; }
-    .modal-actions { display: flex; gap: 10px; }
-    .modal-actions .btn { flex: 1; }
-
-    /* ───── PRODUCTS MANAGEMENT ───── */
-    .page-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 24px;
-    }
-    .page-title { font-size: 1.4rem; font-weight: 900; }
-    .btn-sm {
-      padding: 10px 20px;
-      border-radius: 10px;
-      border: none;
-      font-family: 'Cairo', sans-serif;
-      font-size: 0.9rem;
-      font-weight: 700;
-      cursor: pointer;
-      background: var(--accent);
-      color: #fff;
-      transition: all 0.2s;
-    }
-    .btn-sm:hover { background: #5a52e0; }
-
-    .table-wrap { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td {
-      padding: 14px 16px;
-      text-align: right;
-      font-size: 0.9rem;
-      border-bottom: 1px solid var(--border);
-    }
-    th { background: var(--surface); font-weight: 700; color: var(--muted); font-size: 0.8rem; text-transform: uppercase; }
-    tr:hover td { background: var(--surface2); }
-    .badge {
-      display: inline-block;
-      padding: 3px 10px;
-      border-radius: 20px;
-      font-size: 0.78rem;
-      font-weight: 700;
-    }
-    .badge-green { background: rgba(34,197,94,0.15); color: var(--green); }
-    .badge-red { background: rgba(239,68,68,0.15); color: var(--red); }
-    .badge-yellow { background: rgba(245,158,11,0.15); color: var(--yellow); }
-
-    .action-btns { display: flex; gap: 6px; }
-    .action-btn {
-      padding: 6px 12px;
-      border-radius: 7px;
-      border: 1px solid var(--border);
-      background: none;
-      color: var(--text);
-      font-family: 'Cairo', sans-serif;
-      font-size: 0.8rem;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .action-btn:hover { background: var(--surface2); }
-    .action-btn.del:hover { border-color: var(--red); color: var(--red); }
-
-    /* ───── FORM MODAL ───── */
-    .form-group { margin-bottom: 16px; text-align: right; }
-    .form-group label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 6px; font-weight: 600; }
-    .form-group input, .form-group select {
-      width: 100%;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      color: var(--text);
-      font-family: 'Cairo', sans-serif;
-      font-size: 0.95rem;
-      padding: 11px 14px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    .form-group input:focus, .form-group select:focus { border-color: var(--accent); }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-
-    /* ───── REPORTS ───── */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 16px;
-      margin-bottom: 28px;
-    }
-    .stat-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 20px;
-    }
-    .stat-label { font-size: 0.82rem; color: var(--muted); margin-bottom: 8px; font-weight: 600; }
-    .stat-value { font-size: 1.8rem; font-weight: 900; }
-    .stat-value.green { color: var(--green); }
-    .stat-value.purple { color: var(--accent2); }
-    .stat-value.yellow { color: var(--yellow); }
-
-    .section-title { font-size: 1rem; font-weight: 700; margin-bottom: 14px; color: var(--muted); }
-
-    /* ───── TOAST ───── */
-    .toast {
-      position: fixed;
-      bottom: 24px;
-      left: 50%;
-      transform: translateX(-50%) translateY(100px);
-      background: var(--green);
-      color: #fff;
-      padding: 12px 24px;
-      border-radius: 30px;
-      font-weight: 700;
-      font-size: 0.9rem;
-      z-index: 999;
-      transition: transform 0.3s ease;
-      white-space: nowrap;
-    }
-    .toast.show { transform: translateX(-50%) translateY(0); }
-    .toast.error { background: var(--red); }
-
-    /* responsive */
-    @media (max-width: 768px) {
-      .sale-layout { grid-template-columns: 1fr; height: auto; }
-      .cart-panel { min-height: 400px; }
-      .form-row { grid-template-columns: 1fr; }
+    @media(max-width:768px){
+      .sale-layout{grid-template-columns:1fr;height:auto;}
+      .cart-panel{min-height:400px;}
+      .form-row{grid-template-columns:1fr;}
     }
   </style>
 </head>
 <body>
+
+<!-- LOW STOCK BANNER -->
+<div class="alert-banner" id="lowStockBanner">
+  ⚠️ منتجات قاربت على النفاد:
+  <ul id="lowStockList"></ul>
+</div>
 
 <header>
   <div class="logo">كاشير <span>Pro</span></div>
@@ -407,19 +184,15 @@
   <div class="header-date" id="headerDate"></div>
 </header>
 
-<!-- ════════════════ SALE PAGE ════════════════ -->
+<!-- SALE PAGE -->
 <div class="page active" id="page-sale">
   <div class="sale-layout">
-
-    <!-- Products -->
     <div class="products-panel">
       <div class="search-bar">
         <input type="text" id="searchInput" placeholder="🔍  ابحث عن منتج..." oninput="renderProductCards()" />
       </div>
       <div class="products-grid" id="productsGrid"></div>
     </div>
-
-    <!-- Cart -->
     <div class="cart-panel">
       <div class="cart-header">
         <span>🧾 الفاتورة</span>
@@ -438,16 +211,14 @@
           <div class="total-row"><span>الخصم</span><span id="discountShow">- 0 ج</span></div>
           <div class="total-row grand"><span>الإجمالي</span><span id="grandTotal">0 ج</span></div>
         </div>
-        <button class="btn btn-primary" id="checkoutBtn" onclick="openCheckout()" disabled>
-          إتمام البيع ✓
-        </button>
+        <button class="btn btn-primary" id="checkoutBtn" onclick="openCheckout()" disabled>إتمام البيع ✓</button>
         <button class="btn btn-danger" onclick="clearCart()">مسح الفاتورة</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ════════════════ PRODUCTS PAGE ════════════════ -->
+<!-- PRODUCTS PAGE -->
 <div class="page" id="page-products">
   <div class="page-header">
     <div class="page-title">📦 إدارة المنتجات</div>
@@ -455,75 +226,54 @@
   </div>
   <div class="table-wrap">
     <table>
-      <thead>
-        <tr>
-          <th>المنتج</th>
-          <th>الفئة</th>
-          <th>سعر الشراء</th>
-          <th>سعر البيع</th>
-          <th>هامش الربح</th>
-          <th>المخزون</th>
-          <th>الحالة</th>
-          <th>إجراءات</th>
-        </tr>
-      </thead>
+      <thead><tr>
+        <th>المنتج</th><th>الفئة</th><th>سعر الشراء</th>
+        <th>سعر البيع</th><th>هامش الربح</th><th>المخزون</th>
+        <th>الحالة</th><th>إجراءات</th>
+      </tr></thead>
       <tbody id="productsTable"></tbody>
     </table>
   </div>
 </div>
 
-<!-- ════════════════ REPORTS PAGE ════════════════ -->
+<!-- REPORTS PAGE -->
 <div class="page" id="page-reports">
   <div class="page-header">
     <div class="page-title">📊 التقارير</div>
-    <button class="btn-sm btn-danger-sm" onclick="if(confirm('هتمسح كل سجلات المبيعات؟')) { clearSales(); }">🗑 مسح السجلات</button>
+    <button class="btn-sm" style="background:rgba(239,68,68,.2);color:var(--red);" onclick="if(confirm('هتمسح كل سجلات المبيعات؟')){clearSales();}">🗑 مسح السجلات</button>
   </div>
+
+  <!-- Date filter -->
+  <div class="filter-bar">
+    <button class="filter-btn active" onclick="setFilter('today',this)">اليوم</button>
+    <button class="filter-btn" onclick="setFilter('week',this)">الأسبوع</button>
+    <button class="filter-btn" onclick="setFilter('month',this)">الشهر</button>
+    <button class="filter-btn" onclick="setFilter('all',this)">كل الوقت</button>
+    <input type="date" id="dateFrom" onchange="setFilter('custom',null)" />
+    <input type="date" id="dateTo" onchange="setFilter('custom',null)" />
+  </div>
+
   <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-label">مبيعات اليوم</div>
-      <div class="stat-value green" id="todaySales">0 ج</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">🟢 ربح اليوم</div>
-      <div class="stat-value green" id="todayProfit">0 ج</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">عدد الفواتير اليوم</div>
-      <div class="stat-value purple" id="todayCount">0</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">إجمالي المبيعات</div>
-      <div class="stat-value yellow" id="allTimeSales">0 ج</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">🟢 إجمالي الأرباح</div>
-      <div class="stat-value green" id="allTimeProfit">0 ج</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">عدد المنتجات</div>
-      <div class="stat-value" id="totalProducts">0</div>
-    </div>
+    <div class="stat-card"><div class="stat-label">المبيعات</div><div class="stat-value green" id="rSales">0 ج</div></div>
+    <div class="stat-card"><div class="stat-label">🟢 الأرباح</div><div class="stat-value green" id="rProfit">0 ج</div></div>
+    <div class="stat-card"><div class="stat-label">عدد الفواتير</div><div class="stat-value purple" id="rCount">0</div></div>
+    <div class="stat-card"><div class="stat-label">متوسط الفاتورة</div><div class="stat-value yellow" id="rAvg">0 ج</div></div>
+    <div class="stat-card"><div class="stat-label">عدد المنتجات</div><div class="stat-value" id="totalProducts">0</div></div>
   </div>
-  <div class="section-title">آخر الفواتير</div>
+
+  <div class="section-title">سجل الفواتير</div>
   <div class="table-wrap">
     <table>
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>التاريخ والوقت</th>
-          <th>المنتجات</th>
-          <th>المجموع</th>
-          <th>الخصم</th>
-          <th>الإجمالي</th>
-          <th>الربح</th>
-        </tr>
-      </thead>
+      <thead><tr>
+        <th>#</th><th>التاريخ</th><th>المنتجات</th>
+        <th>المجموع</th><th>الخصم</th><th>الإجمالي</th><th>الربح</th><th>طباعة</th>
+      </tr></thead>
       <tbody id="salesTable"></tbody>
     </table>
   </div>
 </div>
 
-<!-- ════════════════ CHECKOUT MODAL ════════════════ -->
+<!-- CHECKOUT MODAL -->
 <div class="modal-overlay" id="checkoutModal">
   <div class="modal">
     <h2>✅ تأكيد البيع</h2>
@@ -535,7 +285,7 @@
         <input type="number" id="paidInput" placeholder="0" oninput="calcChange()" />
       </div>
       <div class="total-row grand" style="padding:10px;background:var(--surface2);border-radius:8px;">
-        <span>الباقي</span>
+        <span>الباقي للعميل</span>
         <span id="changeAmount" style="color:var(--green)">0 ج</span>
       </div>
     </div>
@@ -546,47 +296,31 @@
   </div>
 </div>
 
-<!-- ════════════════ PRODUCT FORM MODAL ════════════════ -->
+<!-- PRODUCT FORM MODAL -->
 <div class="modal-overlay" id="productModal">
   <div class="modal" style="text-align:right;">
     <h2 id="productFormTitle">إضافة منتج</h2>
     <p id="productFormSub">أدخل بيانات المنتج</p>
     <div class="form-row">
-      <div class="form-group">
-        <label>اسم المنتج *</label>
-        <input type="text" id="fName" placeholder="مثال: كريم مرطب" />
-      </div>
-      <div class="form-group">
-        <label>الفئة</label>
+      <div class="form-group"><label>اسم المنتج *</label><input type="text" id="fName" placeholder="مثال: كريم مرطب" /></div>
+      <div class="form-group"><label>الفئة</label>
         <select id="fCategory">
-          <option value="عناية بالبشرة">عناية بالبشرة</option>
-          <option value="عناية بالشعر">عناية بالشعر</option>
-          <option value="عناية بالجسم">عناية بالجسم</option>
-          <option value="منظفات">منظفات</option>
-          <option value="عطور">عطور</option>
-          <option value="أخرى">أخرى</option>
+          <option>عناية بالبشرة</option><option>عناية بالشعر</option>
+          <option>عناية بالجسم</option><option>منظفات</option>
+          <option>عطور</option><option>أخرى</option>
         </select>
       </div>
     </div>
     <div class="form-row">
-      <div class="form-group">
-        <label>سعر الشراء (جنيه) *</label>
-        <input type="number" id="fCost" placeholder="0" min="0" />
-      </div>
-      <div class="form-group">
-        <label>سعر البيع (جنيه) *</label>
-        <input type="number" id="fPrice" placeholder="0" min="0" />
-      </div>
+      <div class="form-group"><label>سعر الشراء (جنيه) *</label><input type="number" id="fCost" placeholder="0" min="0" /></div>
+      <div class="form-group"><label>سعر البيع (جنيه) *</label><input type="number" id="fPrice" placeholder="0" min="0" /></div>
     </div>
     <div class="form-row">
-      <div class="form-group">
-        <label>الكمية في المخزون *</label>
-        <input type="number" id="fStock" placeholder="0" min="0" />
-      </div>
-      <div class="form-group">
-        <label>الرمز (إيموجي)</label>
-        <input type="text" id="fIcon" placeholder="🧴" maxlength="4" />
-      </div>
+      <div class="form-group"><label>الكمية في المخزون *</label><input type="number" id="fStock" placeholder="0" min="0" /></div>
+      <div class="form-group"><label>حد التنبيه (كمية)</label><input type="number" id="fAlert" placeholder="5" min="0" /></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>الرمز (إيموجي)</label><input type="text" id="fIcon" placeholder="🧴" maxlength="4" /></div>
     </div>
     <input type="hidden" id="fId" />
     <div class="modal-actions">
@@ -596,39 +330,56 @@
   </div>
 </div>
 
-<!-- TOAST -->
+<!-- PRINT AREA -->
+<div class="print-area" id="printArea"></div>
+
 <div class="toast" id="toast"></div>
 
 <script>
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════
 //  DATA
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════
 let products = JSON.parse(localStorage.getItem('pos_products') || '[]');
-let sales    = JSON.parse(localStorage.getItem('pos_sales') || '[]');
+let sales    = JSON.parse(localStorage.getItem('pos_sales')    || '[]');
 let cart     = [];
+let currentFilter = 'today';
 
-// Seed demo products if empty
 if (products.length === 0) {
   products = [
-    { id: uid(), name: 'كريم مرطب للوجه', category: 'عناية بالبشرة', price: 85, cost: 50, stock: 30, icon: '🧴' },
-    { id: uid(), name: 'شامبو بالكيراتين', category: 'عناية بالشعر', price: 120, cost: 70, stock: 20, icon: '🧹' },
-    { id: uid(), name: 'صابون طبيعي', category: 'عناية بالجسم', price: 35, cost: 20, stock: 50, icon: '🧼' },
-    { id: uid(), name: 'معطر منزل', category: 'منظفات', price: 60, cost: 35, stock: 15, icon: '🌸' },
-    { id: uid(), name: 'كريم تفتيح', category: 'عناية بالبشرة', price: 150, cost: 90, stock: 10, icon: '✨' },
-    { id: uid(), name: 'زيت شعر أرجان', category: 'عناية بالشعر', price: 200, cost: 120, stock: 8, icon: '💧' },
-    { id: uid(), name: 'مزيل عرق', category: 'عناية بالجسم', price: 45, cost: 25, stock: 40, icon: '💨' },
-    { id: uid(), name: 'كريم يدين', category: 'عناية بالجسم', price: 30, cost: 15, stock: 25, icon: '🤲' },
+    {id:uid(),name:'كريم مرطب للوجه',category:'عناية بالبشرة',price:85,cost:50,stock:30,alertAt:5,icon:'🧴'},
+    {id:uid(),name:'شامبو بالكيراتين',category:'عناية بالشعر',price:120,cost:70,stock:20,alertAt:5,icon:'🧹'},
+    {id:uid(),name:'صابون طبيعي',category:'عناية بالجسم',price:35,cost:20,stock:50,alertAt:10,icon:'🧼'},
+    {id:uid(),name:'معطر منزل',category:'منظفات',price:60,cost:35,stock:15,alertAt:5,icon:'🌸'},
+    {id:uid(),name:'كريم تفتيح',category:'عناية بالبشرة',price:150,cost:90,stock:10,alertAt:3,icon:'✨'},
+    {id:uid(),name:'زيت شعر أرجان',category:'عناية بالشعر',price:200,cost:120,stock:8,alertAt:3,icon:'💧'},
+    {id:uid(),name:'مزيل عرق',category:'عناية بالجسم',price:45,cost:25,stock:4,alertAt:5,icon:'💨'},
+    {id:uid(),name:'كريم يدين',category:'عناية بالجسم',price:30,cost:15,stock:25,alertAt:5,icon:'🤲'},
   ];
   saveProducts();
 }
 
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
 function saveProducts() { localStorage.setItem('pos_products', JSON.stringify(products)); }
-function saveSales()    { localStorage.setItem('pos_sales', JSON.stringify(sales)); }
+function saveSales()    { localStorage.setItem('pos_sales',    JSON.stringify(sales));    }
 
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════
+//  LOW STOCK ALERT
+// ══════════════════════════════════════════
+function checkLowStock() {
+  const low = products.filter(p => p.stock > 0 && p.stock <= (p.alertAt || 5));
+  const banner = document.getElementById('lowStockBanner');
+  const list   = document.getElementById('lowStockList');
+  if (low.length) {
+    list.innerHTML = low.map(p => `<li>${p.icon} ${p.name} — متبقي <strong>${p.stock}</strong></li>`).join('');
+    banner.classList.add('show');
+  } else {
+    banner.classList.remove('show');
+  }
+}
+
+// ══════════════════════════════════════════
 //  NAVIGATION
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════
 function showPage(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('nav button').forEach((b,i) => {
@@ -640,59 +391,52 @@ function showPage(name) {
   if (name === 'sale')     renderProductCards();
 }
 
-// Date header
 function updateDate() {
-  const now = new Date();
   document.getElementById('headerDate').textContent =
-    now.toLocaleDateString('ar-EG', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+    new Date().toLocaleDateString('ar-EG', {weekday:'long',year:'numeric',month:'long',day:'numeric'});
 }
 updateDate();
 
-// ═══════════════════════════════════════════
-//  PRODUCT CARDS (SALE)
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════
+//  PRODUCT CARDS
+// ══════════════════════════════════════════
 function renderProductCards() {
   const q = document.getElementById('searchInput').value.trim().toLowerCase();
-  const filtered = products.filter(p =>
-    !q || p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q)
-  );
+  const filtered = products.filter(p => !q || p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q));
   const grid = document.getElementById('productsGrid');
-  if (!filtered.length) {
-    grid.innerHTML = '<p style="color:var(--muted);padding:20px;">لا توجد منتجات مطابقة</p>';
-    return;
-  }
-  grid.innerHTML = filtered.map(p => `
-    <div class="product-card ${p.stock === 0 ? 'out-of-stock' : ''}"
-         onclick="${p.stock > 0 ? `addToCart('${p.id}')` : ''}">
-      <div class="p-icon">${p.icon || '📦'}</div>
+  if (!filtered.length) { grid.innerHTML = '<p style="color:var(--muted);padding:20px;">لا توجد منتجات مطابقة</p>'; return; }
+  grid.innerHTML = filtered.map(p => {
+    const low = p.stock > 0 && p.stock <= (p.alertAt || 5);
+    return `
+    <div class="product-card ${p.stock===0?'out-of-stock':low?'low-stock':''}"
+         onclick="${p.stock>0?`addToCart('${p.id}')`:''}" >
+      <div class="p-icon">${p.icon||'📦'}</div>
       <div class="p-name">${p.name}</div>
       <div class="p-price">${fmt(p.price)}</div>
-      <div class="p-stock">${p.stock > 0 ? `متاح: ${p.stock}` : 'نفد'}</div>
-    </div>
-  `).join('');
+      <div class="p-stock">${p.stock===0?'نفد':low?`⚠️ متبقي ${p.stock}`:`متاح: ${p.stock}`}</div>
+    </div>`;
+  }).join('');
+  checkLowStock();
 }
 
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════
 //  CART
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════
 function addToCart(id) {
   const p = products.find(x => x.id === id);
   if (!p || p.stock === 0) return;
-  const existing = cart.find(c => c.id === id);
-  if (existing) {
-    if (existing.qty >= p.stock) { showToast('لا يوجد مخزون كافي', true); return; }
-    existing.qty++;
+  const ex = cart.find(c => c.id === id);
+  if (ex) {
+    if (ex.qty >= p.stock) { showToast('لا يوجد مخزون كافي', 'error'); return; }
+    ex.qty++;
   } else {
-    cart.push({ id: p.id, name: p.name, price: p.price, cost: p.cost || 0, qty: 1 });
+    cart.push({id:p.id, name:p.name, price:p.price, cost:p.cost||0, qty:1});
   }
   renderCart();
   showToast(`✅ تمت إضافة ${p.name}`);
 }
 
-function removeFromCart(id) {
-  cart = cart.filter(c => c.id !== id);
-  renderCart();
-}
+function removeFromCart(id) { cart = cart.filter(c => c.id !== id); renderCart(); }
 
 function changeQty(id, delta) {
   const item = cart.find(c => c.id === id);
@@ -703,7 +447,7 @@ function changeQty(id, delta) {
 }
 
 function clearCart() {
-  if (cart.length === 0) return;
+  if (!cart.length) return;
   cart = [];
   document.getElementById('discountInput').value = '';
   renderCart();
@@ -711,18 +455,16 @@ function clearCart() {
 
 function renderCart() {
   const container = document.getElementById('cartItems');
-  const countEl   = document.getElementById('cartCount');
   const discount  = parseFloat(document.getElementById('discountInput').value) || 0;
+  const subtotal  = cart.reduce((s,c) => s + c.price * c.qty, 0);
+  const grand     = Math.max(0, subtotal - discount);
+  const count     = cart.reduce((s,c) => s + c.qty, 0);
 
-  const subtotal = cart.reduce((s, c) => s + c.price * c.qty, 0);
-  const grand    = Math.max(0, subtotal - discount);
-  const count    = cart.reduce((s, c) => s + c.qty, 0);
-
-  countEl.textContent = count;
-  document.getElementById('subtotal').textContent    = fmt(subtotal);
+  document.getElementById('cartCount').textContent    = count;
+  document.getElementById('subtotal').textContent     = fmt(subtotal);
   document.getElementById('discountShow').textContent = `- ${fmt(discount)}`;
-  document.getElementById('grandTotal').textContent  = fmt(grand);
-  document.getElementById('checkoutBtn').disabled    = cart.length === 0;
+  document.getElementById('grandTotal').textContent   = fmt(grand);
+  document.getElementById('checkoutBtn').disabled     = cart.length === 0;
 
   if (!cart.length) {
     container.innerHTML = '<div class="cart-empty"><span class="empty-icon">🛍️</span>ابدأ بإضافة منتجات</div>';
@@ -736,71 +478,57 @@ function renderCart() {
       </div>
       <div style="display:flex;align-items:center;gap:6px;">
         <div class="ci-controls">
-          <button onclick="changeQty('${c.id}', -1)">−</button>
+          <button onclick="changeQty('${c.id}',-1)">−</button>
           <span class="qty">${c.qty}</span>
-          <button onclick="changeQty('${c.id}', +1)">+</button>
+          <button onclick="changeQty('${c.id}',+1)">+</button>
         </div>
         <button class="ci-del" onclick="removeFromCart('${c.id}')">🗑</button>
       </div>
-    </div>
-  `).join('');
+    </div>`).join('');
 }
 
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════
 //  CHECKOUT
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════
 function openCheckout() {
   const discount = parseFloat(document.getElementById('discountInput').value) || 0;
-  const subtotal = cart.reduce((s, c) => s + c.price * c.qty, 0);
+  const subtotal = cart.reduce((s,c) => s + c.price*c.qty, 0);
   const grand    = Math.max(0, subtotal - discount);
-
   document.getElementById('receiptPreview').innerHTML = `
-    ${cart.map(c => `<div class="receipt-row"><span>${c.name} ×${c.qty}</span><span>${fmt(c.price * c.qty)}</span></div>`).join('')}
-    ${discount > 0 ? `<div class="receipt-row"><span>خصم</span><span>- ${fmt(discount)}</span></div>` : ''}
-    <div class="receipt-row"><span>الإجمالي</span><span>${fmt(grand)}</span></div>
-  `;
+    ${cart.map(c=>`<div class="receipt-row"><span>${c.name} ×${c.qty}</span><span>${fmt(c.price*c.qty)}</span></div>`).join('')}
+    ${discount>0?`<div class="receipt-row"><span>خصم</span><span>- ${fmt(discount)}</span></div>`:''}
+    <div class="receipt-row"><span>الإجمالي</span><span>${fmt(grand)}</span></div>`;
   document.getElementById('paidInput').value = '';
   document.getElementById('changeAmount').textContent = '0 ج';
   document.getElementById('checkoutModal').classList.add('open');
 }
 
-function closeCheckout() {
-  document.getElementById('checkoutModal').classList.remove('open');
-}
+function closeCheckout() { document.getElementById('checkoutModal').classList.remove('open'); }
 
 function calcChange() {
   const discount = parseFloat(document.getElementById('discountInput').value) || 0;
-  const subtotal = cart.reduce((s, c) => s + c.price * c.qty, 0);
-  const grand    = Math.max(0, subtotal - discount);
+  const grand    = Math.max(0, cart.reduce((s,c)=>s+c.price*c.qty,0) - discount);
   const paid     = parseFloat(document.getElementById('paidInput').value) || 0;
-  const change   = Math.max(0, paid - grand);
-  document.getElementById('changeAmount').textContent = fmt(change);
+  document.getElementById('changeAmount').textContent = fmt(Math.max(0, paid - grand));
 }
 
 function confirmSale() {
-  const discount = parseFloat(document.getElementById('discountInput').value) || 0;
-  const subtotal = cart.reduce((s, c) => s + c.price * c.qty, 0);
-  const totalCost = cart.reduce((s, c) => s + (c.cost || 0) * c.qty, 0);
-  const grand    = Math.max(0, subtotal - discount);
-  const profit   = Math.max(0, grand - totalCost);
+  const discount  = parseFloat(document.getElementById('discountInput').value) || 0;
+  const subtotal  = cart.reduce((s,c) => s + c.price*c.qty, 0);
+  const totalCost = cart.reduce((s,c) => s + (c.cost||0)*c.qty, 0);
+  const grand     = Math.max(0, subtotal - discount);
+  const profit    = Math.max(0, grand - totalCost);
+  const saleId    = uid();
+  const saleDate  = new Date().toISOString();
 
-  // Deduct stock
   cart.forEach(c => {
     const p = products.find(x => x.id === c.id);
     if (p) p.stock = Math.max(0, p.stock - c.qty);
   });
   saveProducts();
 
-  // Save sale
-  sales.unshift({
-    id: uid(),
-    date: new Date().toISOString(),
-    items: cart.map(c => ({ name: c.name, qty: c.qty, price: c.price, cost: c.cost || 0 })),
-    subtotal,
-    discount,
-    grand,
-    profit
-  });
+  const sale = {id:saleId, date:saleDate, items:cart.map(c=>({name:c.name,qty:c.qty,price:c.price,cost:c.cost||0})), subtotal, discount, grand, profit};
+  sales.unshift(sale);
   saveSales();
 
   closeCheckout();
@@ -809,33 +537,26 @@ function confirmSale() {
   showToast('🎉 تم البيع بنجاح!');
 }
 
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════
 //  PRODUCTS TABLE
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════
 function renderProductsTable() {
   document.getElementById('productsTable').innerHTML = products.map(p => {
-    const margin = p.cost > 0 ? Math.round(((p.price - p.cost) / p.price) * 100) : 0;
-    return `
-    <tr>
-      <td>${p.icon || '📦'} ${p.name}</td>
+    const margin = p.cost > 0 ? Math.round(((p.price-p.cost)/p.price)*100) : 0;
+    return `<tr>
+      <td>${p.icon||'📦'} ${p.name}</td>
       <td>${p.category}</td>
-      <td style="color:var(--red);">${fmt(p.cost || 0)}</td>
+      <td style="color:var(--red);">${fmt(p.cost||0)}</td>
       <td style="color:var(--accent2);font-weight:700;">${fmt(p.price)}</td>
-      <td style="color:var(--green);font-weight:700;">${fmt(p.price - (p.cost||0))} <span style="font-size:0.75rem;color:var(--muted)">(${margin}%)</span></td>
-      <td>${p.stock}</td>
-      <td>
-        <span class="badge ${p.stock === 0 ? 'badge-red' : p.stock <= 5 ? 'badge-yellow' : 'badge-green'}">
-          ${p.stock === 0 ? 'نفد' : p.stock <= 5 ? 'منخفض' : 'متاح'}
-        </span>
-      </td>
-      <td>
-        <div class="action-btns">
-          <button class="action-btn" onclick="openProductForm('${p.id}')">✏️ تعديل</button>
-          <button class="action-btn del" onclick="deleteProduct('${p.id}')">🗑 حذف</button>
-        </div>
-      </td>
-    </tr>
-  `}).join('');
+      <td style="color:var(--green);font-weight:700;">${fmt(p.price-(p.cost||0))} <span style="font-size:.75rem;color:var(--muted)">(${margin}%)</span></td>
+      <td>${p.stock} <span style="font-size:.75rem;color:var(--muted)">/ تنبيه: ${p.alertAt||5}</span></td>
+      <td><span class="badge ${p.stock===0?'badge-red':p.stock<=(p.alertAt||5)?'badge-yellow':'badge-green'}">${p.stock===0?'نفد':p.stock<=(p.alertAt||5)?'منخفض':'متاح'}</span></td>
+      <td><div class="action-btns">
+        <button class="action-btn" onclick="openProductForm('${p.id}')">✏️ تعديل</button>
+        <button class="action-btn del" onclick="deleteProduct('${p.id}')">🗑 حذف</button>
+      </div></td>
+    </tr>`;
+  }).join('');
 }
 
 function deleteProduct(id) {
@@ -846,9 +567,9 @@ function deleteProduct(id) {
   showToast('تم حذف المنتج');
 }
 
-// ═══════════════════════════════════════════
-//  PRODUCT FORM MODAL
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════
+//  PRODUCT FORM
+// ══════════════════════════════════════════
 function openProductForm(id) {
   const p = id ? products.find(x => x.id === id) : null;
   document.getElementById('productFormTitle').textContent = p ? 'تعديل المنتج' : 'إضافة منتج';
@@ -856,16 +577,14 @@ function openProductForm(id) {
   document.getElementById('fId').value       = p ? p.id : '';
   document.getElementById('fName').value     = p ? p.name : '';
   document.getElementById('fCategory').value = p ? p.category : 'عناية بالبشرة';
-  document.getElementById('fCost').value     = p ? (p.cost || '') : '';
+  document.getElementById('fCost').value     = p ? (p.cost||'') : '';
   document.getElementById('fPrice').value    = p ? p.price : '';
   document.getElementById('fStock').value    = p ? p.stock : '';
+  document.getElementById('fAlert').value    = p ? (p.alertAt||5) : 5;
   document.getElementById('fIcon').value     = p ? p.icon : '🧴';
   document.getElementById('productModal').classList.add('open');
 }
-
-function closeProductForm() {
-  document.getElementById('productModal').classList.remove('open');
-}
+function closeProductForm() { document.getElementById('productModal').classList.remove('open'); }
 
 function saveProduct() {
   const id    = document.getElementById('fId').value;
@@ -873,82 +592,123 @@ function saveProduct() {
   const cost  = parseFloat(document.getElementById('fCost').value);
   const price = parseFloat(document.getElementById('fPrice').value);
   const stock = parseInt(document.getElementById('fStock').value);
+  const alertAt = parseInt(document.getElementById('fAlert').value) || 5;
   const cat   = document.getElementById('fCategory').value;
   const icon  = document.getElementById('fIcon').value.trim() || '📦';
 
   if (!name || isNaN(cost) || isNaN(price) || isNaN(stock)) {
-    showToast('من فضلك اكمل البيانات المطلوبة', true); return;
+    showToast('من فضلك اكمل البيانات المطلوبة', 'error'); return;
   }
-
   if (id) {
     const p = products.find(x => x.id === id);
-    if (p) Object.assign(p, { name, cost, price, stock, category: cat, icon });
+    if (p) Object.assign(p, {name,cost,price,stock,alertAt,category:cat,icon});
   } else {
-    products.push({ id: uid(), name, cost, price, stock, category: cat, icon });
+    products.push({id:uid(),name,cost,price,stock,alertAt,category:cat,icon});
   }
-
   saveProducts();
   closeProductForm();
   renderProductsTable();
+  checkLowStock();
   showToast(id ? 'تم تعديل المنتج ✓' : 'تمت إضافة المنتج ✓');
 }
 
-// ═══════════════════════════════════════════
-//  REPORTS
-// ═══════════════════════════════════════════
-function renderReports() {
-  const today = new Date().toDateString();
-  const todaySales = sales.filter(s => new Date(s.date).toDateString() === today);
-
-  document.getElementById('todaySales').textContent    = fmt(todaySales.reduce((s,x) => s + x.grand, 0));
-  document.getElementById('todayProfit').textContent   = fmt(todaySales.reduce((s,x) => s + (x.profit || 0), 0));
-  document.getElementById('todayCount').textContent    = todaySales.length;
-  document.getElementById('allTimeSales').textContent  = fmt(sales.reduce((s,x) => s + x.grand, 0));
-  document.getElementById('allTimeProfit').textContent = fmt(sales.reduce((s,x) => s + (x.profit || 0), 0));
-  document.getElementById('totalProducts').textContent  = products.length;
-
-  document.getElementById('salesTable').innerHTML = sales.length === 0
-    ? '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:30px;">لا توجد مبيعات بعد</td></tr>'
-    : sales.map((s, i) => `
-    <tr>
-      <td>#${sales.length - i}</td>
-      <td style="font-size:0.8rem;">${new Date(s.date).toLocaleString('ar-EG')}</td>
-      <td style="font-size:0.8rem;">${s.items.map(x => `${x.name}×${x.qty}`).join('، ')}</td>
-      <td>${fmt(s.subtotal)}</td>
-      <td style="color:var(--red);">-${fmt(s.discount)}</td>
-      <td style="color:var(--accent2);font-weight:700;">${fmt(s.grand)}</td>
-      <td style="color:var(--green);font-weight:700;">${fmt(s.profit || 0)}</td>
-    </tr>
-  `).join('');
-}
-
-function clearSales() {
-  sales = [];
-  saveSales();
+// ══════════════════════════════════════════
+//  REPORTS + DATE FILTER
+// ══════════════════════════════════════════
+function setFilter(type, btn) {
+  currentFilter = type;
+  if (btn) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
   renderReports();
-  showToast('تم مسح سجلات المبيعات');
 }
 
-// ═══════════════════════════════════════════
-//  UTILS
-// ═══════════════════════════════════════════
-function fmt(n) { return (n || 0).toLocaleString('ar-EG') + ' ج'; }
+function getFilteredSales() {
+  const now  = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-function showToast(msg, isError = false) {
+  if (currentFilter === 'today') {
+    return sales.filter(s => new Date(s.date) >= today);
+  } else if (currentFilter === 'week') {
+    const from = new Date(today); from.setDate(from.getDate() - 6);
+    return sales.filter(s => new Date(s.date) >= from);
+  } else if (currentFilter === 'month') {
+    const from = new Date(now.getFullYear(), now.getMonth(), 1);
+    return sales.filter(s => new Date(s.date) >= from);
+  } else if (currentFilter === 'custom') {
+    const from = document.getElementById('dateFrom').value;
+    const to   = document.getElementById('dateTo').value;
+    return sales.filter(s => {
+      const d = s.date.slice(0,10);
+      return (!from || d >= from) && (!to || d <= to);
+    });
+  }
+  return sales;
+}
+
+function renderReports() {
+  const filtered = getFilteredSales();
+  const totalSales  = filtered.reduce((s,x) => s+x.grand, 0);
+  const totalProfit = filtered.reduce((s,x) => s+(x.profit||0), 0);
+  const count       = filtered.length;
+
+  document.getElementById('rSales').textContent    = fmt(totalSales);
+  document.getElementById('rProfit').textContent   = fmt(totalProfit);
+  document.getElementById('rCount').textContent    = count;
+  document.getElementById('rAvg').textContent      = fmt(count ? Math.round(totalSales/count) : 0);
+  document.getElementById('totalProducts').textContent = products.length;
+
+  document.getElementById('salesTable').innerHTML = filtered.length === 0
+    ? '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:30px;">لا توجد مبيعات في هذه الفترة</td></tr>'
+    : filtered.map((s,i) => `<tr>
+        <td>#${sales.indexOf(s)+1}</td>
+        <td style="font-size:.8rem;">${new Date(s.date).toLocaleString('ar-EG')}</td>
+        <td style="font-size:.8rem;">${s.items.map(x=>`${x.name}×${x.qty}`).join('، ')}</td>
+        <td>${fmt(s.subtotal)}</td>
+        <td style="color:var(--red);">-${fmt(s.discount)}</td>
+        <td style="color:var(--accent2);font-weight:700;">${fmt(s.grand)}</td>
+        <td style="color:var(--green);font-weight:700;">${fmt(s.profit||0)}</td>
+        <td><button class="action-btn" onclick="printSale('${s.id}')">🖨️</button></td>
+      </tr>`).join('');
+}
+
+function clearSales() { sales=[]; saveSales(); renderReports(); showToast('تم مسح السجلات'); }
+
+// ══════════════════════════════════════════
+//  PRINT
+// ══════════════════════════════════════════
+function printSale(id) {
+  const s = sales.find(x => x.id === id);
+  if (!s) return;
+  const pa = document.getElementById('printArea');
+  pa.innerHTML = `
+    <div class="print-header">
+      <h2>كاشير Pro</h2>
+      <p>${new Date(s.date).toLocaleString('ar-EG')}</p>
+    </div>
+    ${s.items.map(x=>`<div class="print-row"><span>${x.name} ×${x.qty}</span><span>${(x.price*x.qty).toLocaleString('ar-EG')} ج</span></div>`).join('')}
+    ${s.discount>0?`<div class="print-row"><span>خصم</span><span>- ${s.discount.toLocaleString('ar-EG')} ج</span></div>`:''}
+    <div class="print-total">الإجمالي: ${s.grand.toLocaleString('ar-EG')} ج</div>
+    <div class="print-footer">شكراً لتعاملكم معنا 🌸</div>`;
+  window.print();
+}
+
+// ══════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════
+function fmt(n) { return (n||0).toLocaleString('ar-EG') + ' ج'; }
+
+function showToast(msg, type='') {
   const t = document.getElementById('toast');
   t.textContent = msg;
-  t.className = 'toast' + (isError ? ' error' : '');
+  t.className = 'toast' + (type ? ' '+type : '');
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2500);
 }
 
-// Close modals on overlay click
-document.querySelectorAll('.modal-overlay').forEach(overlay => {
-  overlay.addEventListener('click', e => {
-    if (e.target === overlay) {
-      overlay.classList.remove('open');
-    }
-  });
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target===o) o.classList.remove('open'); });
 });
 
 // Init
