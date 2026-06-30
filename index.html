@@ -181,7 +181,10 @@
     <button onclick="showPage('products')">📦 المنتجات</button>
     <button onclick="showPage('reports')">📊 التقارير</button>
   </nav>
-  <div class="header-date" id="headerDate"></div>
+  <div style="display:flex;align-items:center;gap:14px;">
+    <span id="syncStatus" style="font-size:.78rem;color:var(--muted);display:flex;align-items:center;gap:5px;">⏳ جاري الاتصال...</span>
+    <div class="header-date" id="headerDate"></div>
+  </div>
 </header>
 
 <!-- SALE PAGE -->
@@ -240,7 +243,12 @@
 <div class="page" id="page-reports">
   <div class="page-header">
     <div class="page-title">📊 التقارير</div>
-    <button class="btn-sm" style="background:rgba(239,68,68,.2);color:var(--red);" onclick="if(confirm('هتمسح كل سجلات المبيعات؟')){clearSales();}">🗑 مسح السجلات</button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn-sm" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);" onclick="exportBackup()">⬇️ تصدير نسخة احتياطية</button>
+      <button class="btn-sm" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);" onclick="document.getElementById('importFile').click()">⬆️ استيراد نسخة احتياطية</button>
+      <input type="file" id="importFile" accept="application/json" style="display:none;" onchange="importBackup(event)" />
+      <button class="btn-sm" style="background:rgba(239,68,68,.2);color:var(--red);" onclick="if(confirm('هتمسح كل سجلات المبيعات؟')){clearSales();}">🗑 مسح السجلات</button>
+    </div>
   </div>
 
   <!-- Date filter -->
@@ -335,6 +343,37 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+
+<script>
+// ══════════════════════════════════════════
+//  FIREBASE CONFIG — غيّر القيم دي ببيانات مشروعك من Firebase Console
+//  Project Settings → General → Your apps → SDK setup and configuration
+// ══════════════════════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyBmSvDLaEN_UFgu9TTKkr1a2YmnjfOaFqw",
+  authDomain: "cashier-b366d.firebaseapp.com",
+  projectId: "cashier-b366d",
+  storageBucket: "cashier-b366d.firebasestorage.app",
+  messagingSenderId: "869424431575",
+  appId: "1:869424431575:web:95630595c2b38e4c6ecb92"
+};
+
+let firebaseEnabled = firebaseConfig.apiKey !== "YOUR_API_KEY";
+let db = null;
+let storeId = localStorage.getItem('pos_store_id') || '';
+let storeRef = null;
+let isApplyingRemote = false; // flag to avoid save-loops when applying remote snapshots
+
+if (firebaseEnabled) {
+  firebase.initializeApp(firebaseConfig);
+  db = firebase.firestore();
+}
+</script>
+
 <script>
 // ══════════════════════════════════════════
 //  DATA
@@ -344,8 +383,10 @@ let sales    = JSON.parse(localStorage.getItem('pos_sales')    || '[]');
 let cart     = [];
 let currentFilter = 'today';
 
-if (products.length === 0) {
-  products = [
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+function defaultProducts() {
+  return [
     {id:uid(),name:'كريم مرطب للوجه',category:'عناية بالبشرة',price:85,cost:50,stock:30,alertAt:5,icon:'🧴'},
     {id:uid(),name:'شامبو بالكيراتين',category:'عناية بالشعر',price:120,cost:70,stock:20,alertAt:5,icon:'🧹'},
     {id:uid(),name:'صابون طبيعي',category:'عناية بالجسم',price:35,cost:20,stock:50,alertAt:10,icon:'🧼'},
@@ -355,12 +396,138 @@ if (products.length === 0) {
     {id:uid(),name:'مزيل عرق',category:'عناية بالجسم',price:45,cost:25,stock:4,alertAt:5,icon:'💨'},
     {id:uid(),name:'كريم يدين',category:'عناية بالجسم',price:30,cost:15,stock:25,alertAt:5,icon:'🤲'},
   ];
-  saveProducts();
 }
 
-function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
-function saveProducts() { localStorage.setItem('pos_products', JSON.stringify(products)); }
-function saveSales()    { localStorage.setItem('pos_sales',    JSON.stringify(sales));    }
+function saveProducts() {
+  localStorage.setItem('pos_products', JSON.stringify(products));
+  pushToCloud();
+}
+function saveSales() {
+  localStorage.setItem('pos_sales', JSON.stringify(sales));
+  pushToCloud();
+}
+
+// ══════════════════════════════════════════
+//  FIREBASE SYNC
+// ══════════════════════════════════════════
+const syncEl = () => document.getElementById('syncStatus');
+
+function setSyncStatus(text, color) {
+  const el = syncEl();
+  if (el) { el.textContent = text; el.style.color = color || 'var(--muted)'; }
+}
+
+function pushToCloud() {
+  if (!firebaseEnabled || !storeRef || isApplyingRemote) return;
+  storeRef.set({ products, sales, updatedAt: Date.now() }, { merge: true })
+    .then(() => setSyncStatus('☁️ متصل ومتزامن', 'var(--green)'))
+    .catch(err => { console.error(err); setSyncStatus('⚠️ فشل الحفظ على النت', 'var(--red)'); });
+}
+
+function startCloudSync() {
+  if (!firebaseEnabled) {
+    setSyncStatus('📴 يعمل محلياً فقط', 'var(--muted)');
+    initLocalData();
+    return;
+  }
+  if (!storeId) {
+    storeId = (prompt('أدخل كود المتجر (اختر كود وسجّله، واستخدم نفس الكود على أي جهاز/متصفح تاني عشان تشوف نفس البيانات):') || '').trim();
+    if (!storeId) storeId = 'default-store';
+    localStorage.setItem('pos_store_id', storeId);
+  }
+  storeRef = db.collection('cashier_stores').doc(storeId);
+  setSyncStatus('⏳ جاري المزامنة...', 'var(--muted)');
+
+  storeRef.onSnapshot(snap => {
+    isApplyingRemote = true;
+    if (snap.exists) {
+      const data = snap.data();
+      products = data.products || [];
+      sales    = data.sales || [];
+      if (products.length === 0 && sales.length === 0) {
+        products = JSON.parse(localStorage.getItem('pos_products') || '[]');
+        if (products.length === 0) products = defaultProducts();
+      }
+    } else {
+      products = JSON.parse(localStorage.getItem('pos_products') || '[]');
+      if (products.length === 0) products = defaultProducts();
+      sales = JSON.parse(localStorage.getItem('pos_sales') || '[]');
+      storeRef.set({ products, sales, updatedAt: Date.now() });
+    }
+    localStorage.setItem('pos_products', JSON.stringify(products));
+    localStorage.setItem('pos_sales', JSON.stringify(sales));
+    setSyncStatus('☁️ متصل ومتزامن', 'var(--green)');
+    refreshCurrentView();
+    isApplyingRemote = false;
+  }, err => {
+    console.error(err);
+    setSyncStatus('⚠️ مفيش اتصال بالنت — هيشتغل محلي', 'var(--red)');
+    initLocalData();
+  });
+}
+
+function initLocalData() {
+  if (products.length === 0) { products = defaultProducts(); saveProductsLocalOnly(); }
+  refreshCurrentView();
+}
+function saveProductsLocalOnly() { localStorage.setItem('pos_products', JSON.stringify(products)); }
+
+function refreshCurrentView() {
+  const activePage = document.querySelector('.page.active');
+  if (!activePage) { renderProductCards(); return; }
+  const id = activePage.id;
+  if (id === 'page-sale')     renderProductCards();
+  if (id === 'page-products') renderProductsTable();
+  if (id === 'page-reports')  renderReports();
+  checkLowStock();
+}
+
+// ══════════════════════════════════════════
+//  BACKUP EXPORT / IMPORT
+// ══════════════════════════════════════════
+function exportBackup() {
+  const backup = {
+    type: 'cashier_pro_backup',
+    exportedAt: new Date().toISOString(),
+    products,
+    sales
+  };
+  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = `cashier-backup-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  showToast('تم تنزيل النسخة الاحتياطية ✓');
+}
+
+function importBackup(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.products || !data.sales) { showToast('ملف غير صالح', 'error'); return; }
+      if (!confirm('هيتم استبدال كل البيانات الحالية بالنسخة المستوردة. متأكد؟')) return;
+      products = data.products;
+      sales    = data.sales;
+      saveProducts();
+      saveSales();
+      refreshCurrentView();
+      showToast('تم استيراد النسخة الاحتياطية ✓');
+    } catch (err) {
+      console.error(err);
+      showToast('حصل خطأ في قراءة الملف', 'error');
+    } finally {
+      event.target.value = '';
+    }
+  };
+  reader.readAsText(file);
+}
 
 // ══════════════════════════════════════════
 //  LOW STOCK ALERT
@@ -712,7 +879,7 @@ document.querySelectorAll('.modal-overlay').forEach(o => {
 });
 
 // Init
-renderProductCards();
+startCloudSync();
 </script>
 </body>
 </html>
