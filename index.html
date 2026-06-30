@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>كاشير | نظام نقطة البيع</title>
+  <title>محل أسواق الموسكي</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
     :root {
@@ -175,7 +175,7 @@
 </div>
 
 <header>
-  <div class="logo">كاشير <span>Pro</span></div>
+  <div class="logo">محل <span>أسواق الموسكي</span></div>
   <nav>
     <button class="active" onclick="showPage('sale')">🛒 البيع</button>
     <button onclick="showPage('products')">📦 المنتجات</button>
@@ -230,7 +230,7 @@
   <div class="table-wrap">
     <table>
       <thead><tr>
-        <th>المنتج</th><th>الفئة</th><th>سعر الشراء</th>
+        <th>الكود</th><th>المنتج</th><th>الفئة</th><th>سعر الشراء</th>
         <th>سعر البيع</th><th>هامش الربح</th><th>المخزون</th>
         <th>الحالة</th><th>إجراءات</th>
       </tr></thead>
@@ -311,13 +311,17 @@
     <p id="productFormSub">أدخل بيانات المنتج</p>
     <div class="form-row">
       <div class="form-group"><label>اسم المنتج *</label><input type="text" id="fName" placeholder="مثال: كريم مرطب" /></div>
+      <div class="form-group"><label>كود الصنف</label><input type="text" id="fCode" placeholder="مثال: 1603" /></div>
+    </div>
+    <div class="form-row">
       <div class="form-group"><label>الفئة</label>
         <select id="fCategory">
           <option>عناية بالبشرة</option><option>عناية بالشعر</option>
           <option>عناية بالجسم</option><option>منظفات</option>
-          <option>عطور</option><option>أخرى</option>
+          <option>مكياج</option><option>عطور</option><option>أخرى</option>
         </select>
       </div>
+      <div class="form-group"><label>الرمز (إيموجي)</label><input type="text" id="fIcon" placeholder="🧴" maxlength="4" /></div>
     </div>
     <div class="form-row">
       <div class="form-group"><label>سعر الشراء (جنيه) *</label><input type="number" id="fCost" placeholder="0" min="0" /></div>
@@ -326,9 +330,6 @@
     <div class="form-row">
       <div class="form-group"><label>الكمية في المخزون *</label><input type="number" id="fStock" placeholder="0" min="0" /></div>
       <div class="form-group"><label>حد التنبيه (كمية)</label><input type="number" id="fAlert" placeholder="5" min="0" /></div>
-    </div>
-    <div class="form-row">
-      <div class="form-group"><label>الرمز (إيموجي)</label><input type="text" id="fIcon" placeholder="🧴" maxlength="4" /></div>
     </div>
     <input type="hidden" id="fId" />
     <div class="modal-actions">
@@ -387,14 +388,55 @@ function uid() { return Date.now().toString(36) + Math.random().toString(36).sli
 
 function defaultProducts() {
   return [
-    {id:uid(),name:'كريم مرطب للوجه',category:'عناية بالبشرة',price:85,cost:50,stock:30,alertAt:5,icon:'🧴'},
-    {id:uid(),name:'شامبو بالكيراتين',category:'عناية بالشعر',price:120,cost:70,stock:20,alertAt:5,icon:'🧹'},
-    {id:uid(),name:'صابون طبيعي',category:'عناية بالجسم',price:35,cost:20,stock:50,alertAt:10,icon:'🧼'},
-    {id:uid(),name:'معطر منزل',category:'منظفات',price:60,cost:35,stock:15,alertAt:5,icon:'🌸'},
-    {id:uid(),name:'كريم تفتيح',category:'عناية بالبشرة',price:150,cost:90,stock:10,alertAt:3,icon:'✨'},
-    {id:uid(),name:'زيت شعر أرجان',category:'عناية بالشعر',price:200,cost:120,stock:8,alertAt:3,icon:'💧'},
-    {id:uid(),name:'مزيل عرق',category:'عناية بالجسم',price:45,cost:25,stock:4,alertAt:5,icon:'💨'},
-    {id:uid(),name:'كريم يدين',category:'عناية بالجسم',price:30,cost:15,stock:25,alertAt:5,icon:'🤲'},
+    {id:uid(),code:"131",name:"حرير سويت شرائح (كرتونة 8 دستة)",category:"أخرى",price:1400,cost:1400,stock:1,alertAt:3,icon:"🍬"},
+    {id:uid(),code:"1603",name:"برياندا لوشن 300مل",category:"عناية بالجسم",price:47,cost:47,stock:6,alertAt:3,icon:"🧴"},
+    {id:uid(),code:"242424",name:"بيو سوفت بيرفيوم بدي ميست 250مل",category:"عطور",price:85,cost:85,stock:8,alertAt:3,icon:"🌸"},
+    {id:uid(),code:"1258",name:"بلوب بادي اسبلاش 300مل",category:"عناية بالجسم",price:85,cost:85,stock:9,alertAt:3,icon:"🧴"},
+    {id:uid(),code:"976",name:"بريانكا مقشر املاح + صابون مغربي 1*4 جردل",category:"عناية بالجسم",price:85,cost:85,stock:3,alertAt:3,icon:"🧼"},
+    {id:uid(),code:"5163211123205",name:"مسك الطهاره الفيصل (دستة)",category:"عطور",price:220,cost:220,stock:2,alertAt:3,icon:"🕌"},
+    {id:uid(),code:"289",name:"بريتي ايلاينر ريشة 2443 (دستة)",category:"مكياج",price:441,cost:441,stock:1,alertAt:3,icon:"🖊️"},
+    {id:uid(),code:"2542424242",name:"بريتي ايلاينر فلوماستر 11 (دستة)",category:"مكياج",price:617,cost:617,stock:1,alertAt:3,icon:"🖊️"},
+    {id:uid(),code:"12454545242",name:"بريتي مسكرة حواجب 0274 (دستة)",category:"مكياج",price:389,cost:389,stock:1,alertAt:3,icon:"💄"},
+    {id:uid(),code:"21245454545",name:"بريتي مسكرة سليكون 012",category:"مكياج",price:42,cost:42,stock:6,alertAt:3,icon:"💄"},
+    {id:uid(),code:"42424244242",name:"بريتي وامن مسكرة 004",category:"مكياج",price:42,cost:42,stock:3,alertAt:3,icon:"💄"},
+    {id:uid(),code:"452724242424",name:"بريتي مسكرة 018",category:"مكياج",price:42,cost:42,stock:3,alertAt:3,icon:"💄"},
+    {id:uid(),code:"6295124001611",name:"بريتي مسكرة سيليكون 014",category:"مكياج",price:42,cost:42,stock:3,alertAt:3,icon:"💄"},
+    {id:uid(),code:"4767657524754742",name:"روز جولد روج سائل ماط 1153 (استاند 24)",category:"مكياج",price:890,cost:890,stock:1,alertAt:3,icon:"💋"},
+    {id:uid(),code:"78544",name:"اظافر ش ان شريط 420 (دستة)",category:"مكياج",price:412,cost:412,stock:1,alertAt:3,icon:"💅"},
+    {id:uid(),code:"545451",name:"بيوتي بلندر برطمان 1*4 (دستة)",category:"مكياج",price:294,cost:294,stock:1,alertAt:3,icon:"🧽"},
+    {id:uid(),code:"575411",name:"بريتي ليب تنت 220580 (استاند 24)",category:"مكياج",price:630,cost:630,stock:1,alertAt:3,icon:"💋"},
+    {id:uid(),code:"4454757574",name:"مناديل اسيتون كرمينا بلو (استاند 24)",category:"مكياج",price:312,cost:312,stock:1,alertAt:3,icon:"🧻"},
+    {id:uid(),code:"24411",name:"ايفر بيوتي كحل جليتر الوان 9088 (دستة)",category:"مكياج",price:180,cost:180,stock:1,alertAt:3,icon:"✨"},
+    {id:uid(),code:"414343444747",name:"ماك تحديد + كحل برايه (دستة)",category:"مكياج",price:144,cost:144,stock:1,alertAt:3,icon:"✏️"},
+    {id:uid(),code:"2454645565",name:"كحل ميس ديما بني + اسود برايه (دستة)",category:"مكياج",price:138,cost:138,stock:1,alertAt:3,icon:"✏️"},
+    {id:uid(),code:"64",name:"اظافر نبيتي (دستة)",category:"مكياج",price:120,cost:120,stock:1,alertAt:3,icon:"💅"},
+    {id:uid(),code:"6295124020176",name:"اظافر كات اي لوكس 134 (دستة)",category:"مكياج",price:312,cost:312,stock:2,alertAt:3,icon:"💅"},
+    {id:uid(),code:"3535846485",name:"اظافر فاكيوم ش ان 144ق (دستة)",category:"مكياج",price:324,cost:324,stock:1,alertAt:3,icon:"💅"},
+    {id:uid(),code:"245665656",name:"اظافر لوكس الماظ فاكيوم 92 (دستة)",category:"مكياج",price:384,cost:384,stock:1,alertAt:3,icon:"💅"},
+    {id:uid(),code:"57524724247",name:"مايت سينما اساس مع كونسلر 4179",category:"مكياج",price:91.67,cost:91.67,stock:12,alertAt:3,icon:"🎨"},
+    {id:uid(),code:"25868553558",name:"حجر قدم 2د صيني (استاند 24)",category:"عناية بالجسم",price:255,cost:255,stock:1,alertAt:3,icon:"🦶"},
+    {id:uid(),code:"1121241242",name:"عدسات فريش ليدي شركة (علبة 5ق)",category:"مكياج",price:300,cost:300,stock:3,alertAt:3,icon:"👁️"},
+    {id:uid(),code:"02152254245",name:"كحل فولمار الوان ووتر بروف (دستة)",category:"مكياج",price:78,cost:78,stock:1,alertAt:3,icon:"✏️"},
+    {id:uid(),code:"6295124020154",name:"ام ان روج خشب 140",category:"مكياج",price:15,cost:15,stock:6,alertAt:3,icon:"💋"},
+    {id:uid(),code:"6242222224255",name:"اكلادور كوكو اوريجنال",category:"أخرى",price:35,cost:35,stock:2,alertAt:3,icon:"🍫"},
+    {id:uid(),code:"24242245752",name:"اكلادور يارا + روز بيري + كيالي (دستة)",category:"أخرى",price:198,cost:198,stock:4,alertAt:3,icon:"🍫"},
+    {id:uid(),code:"42-2",name:"اكلادور كيكو + شيجلام + Si (دستة)",category:"أخرى",price:156,cost:156,stock:5,alertAt:3,icon:"🍫"},
+    {id:uid(),code:"6291107920085",name:"برفان الفخر 100م",category:"عطور",price:115,cost:115,stock:5,alertAt:3,icon:"🌸"},
+    {id:uid(),code:"25285522",name:"برفان قلم تيامو (استاند 24)",category:"عطور",price:450,cost:450,stock:1,alertAt:3,icon:"🌸"},
+    {id:uid(),code:"353354151",name:"برفان استاند خشب (دستة)",category:"عطور",price:396,cost:396,stock:1,alertAt:3,icon:"🌸"},
+    {id:uid(),code:"51",name:"برفان قصة 30م",category:"عطور",price:70,cost:70,stock:3,alertAt:3,icon:"🌸"},
+    {id:uid(),code:"6291103664815",name:"استاند برفان ماركات الزهراء 30م",category:"عطور",price:45,cost:45,stock:3,alertAt:3,icon:"🌸"},
+    {id:uid(),code:"6454434",name:"بريتي كريم اساس 230317 (دستة)",category:"مكياج",price:756,cost:756,stock:1,alertAt:3,icon:"🎨"},
+    {id:uid(),code:"52538778785",name:"بريتي روج دبل مات 200804 (استاند 24)",category:"مكياج",price:882,cost:882,stock:1,alertAt:3,icon:"💋"},
+    {id:uid(),code:"9999999999",name:"بريتي روج سائل + استيك 236 (استاند 24)",category:"مكياج",price:788,cost:788,stock:1,alertAt:3,icon:"💋"},
+    {id:uid(),code:"8690973040614",name:"بريتي روج استيك + سائل 240 (استاند 24)",category:"مكياج",price:788,cost:788,stock:1,alertAt:3,icon:"💋"},
+    {id:uid(),code:"34442413322",name:"بريتي بلاشر ليكود 230560 (استاند 24)",category:"مكياج",price:788,cost:788,stock:1,alertAt:3,icon:"🎨"},
+    {id:uid(),code:"6291012871359",name:"بريتي ليب استيك جلاتيني 9324 (دستة)",category:"مكياج",price:315,cost:315,stock:1,alertAt:3,icon:"💋"},
+    {id:uid(),code:"757852782",name:"بريتي هيليتر ليكود تيوب 9170 (دستة)",category:"مكياج",price:643,cost:643,stock:1,alertAt:3,icon:"✨"},
+    {id:uid(),code:"3699636633",name:"بريتي روج سائل 209 (استاند 24)",category:"مكياج",price:630,cost:630,stock:1,alertAt:3,icon:"💋"},
+    {id:uid(),code:"326826222",name:"بريتي روج استيك 4657 (استاند 24)",category:"مكياج",price:479,cost:479,stock:1,alertAt:3,icon:"💋"},
+    {id:uid(),code:"45454222",name:"بريتي روج استيك 4647 (استاند 24)",category:"مكياج",price:504,cost:504,stock:1,alertAt:3,icon:"💋"},
+    {id:uid(),code:"77584968",name:"بريتي كونسيلر سائل 0110 (دستة)",category:"مكياج",price:600,cost:600,stock:1,alertAt:3,icon:"🎨"},
   ];
 }
 
@@ -569,7 +611,7 @@ updateDate();
 // ══════════════════════════════════════════
 function renderProductCards() {
   const q = document.getElementById('searchInput').value.trim().toLowerCase();
-  const filtered = products.filter(p => !q || p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q));
+  const filtered = products.filter(p => !q || p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q) || (p.code||'').toLowerCase().includes(q));
   const grid = document.getElementById('productsGrid');
   if (!filtered.length) { grid.innerHTML = '<p style="color:var(--muted);padding:20px;">لا توجد منتجات مطابقة</p>'; return; }
   grid.innerHTML = filtered.map(p => {
@@ -711,6 +753,7 @@ function renderProductsTable() {
   document.getElementById('productsTable').innerHTML = products.map(p => {
     const margin = p.cost > 0 ? Math.round(((p.price-p.cost)/p.price)*100) : 0;
     return `<tr>
+      <td style="color:var(--muted);font-size:.8rem;">${p.code||'—'}</td>
       <td>${p.icon||'📦'} ${p.name}</td>
       <td>${p.category}</td>
       <td style="color:var(--red);">${fmt(p.cost||0)}</td>
@@ -743,6 +786,7 @@ function openProductForm(id) {
   document.getElementById('productFormSub').textContent   = p ? 'عدّل البيانات وحفظ' : 'أدخل بيانات المنتج الجديد';
   document.getElementById('fId').value       = p ? p.id : '';
   document.getElementById('fName').value     = p ? p.name : '';
+  document.getElementById('fCode').value     = p ? (p.code||'') : '';
   document.getElementById('fCategory').value = p ? p.category : 'عناية بالبشرة';
   document.getElementById('fCost').value     = p ? (p.cost||'') : '';
   document.getElementById('fPrice').value    = p ? p.price : '';
@@ -756,6 +800,7 @@ function closeProductForm() { document.getElementById('productModal').classList.
 function saveProduct() {
   const id    = document.getElementById('fId').value;
   const name  = document.getElementById('fName').value.trim();
+  const code  = document.getElementById('fCode').value.trim();
   const cost  = parseFloat(document.getElementById('fCost').value);
   const price = parseFloat(document.getElementById('fPrice').value);
   const stock = parseInt(document.getElementById('fStock').value);
@@ -768,9 +813,9 @@ function saveProduct() {
   }
   if (id) {
     const p = products.find(x => x.id === id);
-    if (p) Object.assign(p, {name,cost,price,stock,alertAt,category:cat,icon});
+    if (p) Object.assign(p, {name,code,cost,price,stock,alertAt,category:cat,icon});
   } else {
-    products.push({id:uid(),name,cost,price,stock,alertAt,category:cat,icon});
+    products.push({id:uid(),name,code,cost,price,stock,alertAt,category:cat,icon});
   }
   saveProducts();
   closeProductForm();
@@ -851,7 +896,7 @@ function printSale(id) {
   const pa = document.getElementById('printArea');
   pa.innerHTML = `
     <div class="print-header">
-      <h2>كاشير Pro</h2>
+      <h2>محل أسواق الموسكي</h2>
       <p>${new Date(s.date).toLocaleString('ar-EG')}</p>
     </div>
     ${s.items.map(x=>`<div class="print-row"><span>${x.name} ×${x.qty}</span><span>${(x.price*x.qty).toLocaleString('ar-EG')} ج</span></div>`).join('')}
