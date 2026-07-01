@@ -545,7 +545,7 @@ const firebaseConfig = {
 
 let firebaseEnabled = firebaseConfig.apiKey !== "YOUR_API_KEY";
 let db = null;
-let storeId = localStorage.getItem('pos_store_id') || '';
+let storeId = 'moskey-store';
 let storeRef = null;
 let isApplyingRemote = false; // flag to avoid save-loops when applying remote snapshots
 
@@ -1059,11 +1059,6 @@ function startCloudSync() {
     setSyncStatus('📴 يعمل محلياً فقط', 'var(--muted)');
     initLocalData();
     return;
-  }
-  if (!storeId) {
-    storeId = (prompt('أدخل كود المتجر (اختر كود وسجّله، واستخدم نفس الكود على أي جهاز/متصفح تاني عشان تشوف نفس البيانات):') || '').trim();
-    if (!storeId) storeId = 'default-store';
-    localStorage.setItem('pos_store_id', storeId);
   }
   storeRef = db.collection('cashier_stores').doc(storeId);
   setSyncStatus('⏳ جاري المزامنة...', 'var(--muted)');
