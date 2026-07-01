@@ -225,7 +225,10 @@
 <div class="page" id="page-products">
   <div class="page-header">
     <div class="page-title">📦 إدارة المنتجات</div>
-    <button class="btn-sm" onclick="openProductForm()">+ إضافة منتج</button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn-sm" onclick="openProductForm()">+ إضافة منتج</button>
+      <button class="btn-sm" style="background:rgba(251,191,36,.15);color:#fbbf24;border:1px solid rgba(251,191,36,.3);" onclick="resetToStoreProducts()">🔄 تحميل أصناف المتجر</button>
+    </div>
   </div>
   <div class="table-wrap">
     <table>
@@ -513,6 +516,14 @@ function initLocalData() {
   refreshCurrentView();
 }
 function saveProductsLocalOnly() { localStorage.setItem('pos_products', JSON.stringify(products)); }
+
+function resetToStoreProducts() {
+  if (!confirm('هيتم استبدال كل الأصناف الحالية بأصناف متجر الموسكي. متأكد؟')) return;
+  products = defaultProducts();
+  saveProducts();
+  renderProductsTable();
+  showToast('✅ تم تحميل أصناف المتجر (' + products.length + ' صنف)');
+}
 
 function refreshCurrentView() {
   const activePage = document.querySelector('.page.active');
