@@ -152,15 +152,21 @@
     .filter-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
     .filter-bar input[type=date]{background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Cairo',sans-serif;font-size:.82rem;padding:7px 12px;outline:none;}
 
-    /* PRINT */
+    /* PRINT — مضبوطة على ثيرمال 80مم */
     .print-area{display:none;}
     @media print{
+      @page { size: 80mm auto; margin: 0; }
       body > *{display:none !important;}
-      .print-area{display:block !important;font-family:'Cairo',sans-serif;padding:20px;direction:rtl;}
-      .print-header{text-align:center;border-bottom:2px solid #000;padding-bottom:10px;margin-bottom:16px;}
-      .print-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #ccc;font-size:14px;}
-      .print-total{font-size:18px;font-weight:900;text-align:center;margin-top:12px;border-top:2px solid #000;padding-top:10px;}
-      .print-footer{text-align:center;margin-top:16px;font-size:12px;color:#666;}
+      .print-area{display:block !important;width:76mm;margin:0 auto;padding:6px 6px;font-family:'Cairo',sans-serif;direction:rtl;color:#000;}
+      .print-header{text-align:center;border-bottom:1px dashed #000;padding-bottom:8px;margin-bottom:8px;}
+      .print-header h2{font-size:15px;margin-bottom:3px;}
+      .print-header p{font-size:10.5px;}
+      .print-meta{font-size:11px;margin-bottom:8px;}
+      .print-meta .print-row{border:none;padding:1px 0;}
+      .print-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px dashed #ccc;font-size:12.5px;}
+      .print-row.total-sep{border-top:1px dashed #000;border-bottom:none;margin-top:4px;padding-top:8px;font-size:12.5px;}
+      .print-total{font-size:16px;font-weight:900;text-align:center;margin-top:8px;border-top:1px dashed #000;padding-top:8px;}
+      .print-footer{text-align:center;margin-top:10px;font-size:11px;color:#000;}
     }
 
     /* TOAST */
@@ -261,6 +267,7 @@
     <button onclick="showPage('debts')">💳 الآجل</button>
     <button onclick="showPage('expenses')">💸 المصروفات</button>
     <button onclick="showPage('inventory')">📋 الجرد</button>
+    <button onclick="showPage('topproducts')">🏆 الأكثر مبيعاً</button>
   </nav>
   <div style="display:flex;align-items:center;gap:14px;">
     <span id="syncStatus" style="font-size:.78rem;color:var(--muted);display:flex;align-items:center;gap:5px;">⏳ جاري الاتصال...</span>
@@ -446,6 +453,39 @@
     <table id="inventoryTable">
       <thead><tr><th>الكود</th><th>الصنف</th><th>الفئة</th><th>سعر الشراء</th><th>سعر البيع</th><th>الكمية</th><th>الحالة</th></tr></thead>
       <tbody id="inventoryBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- TOP PRODUCTS PAGE -->
+<div class="page" id="page-topproducts">
+  <div class="page-header">
+    <div class="page-title">🏆 المنتجات الأكثر مبيعاً</div>
+  </div>
+
+  <!-- Date filter -->
+  <div class="filter-bar">
+    <button class="filter-btn active" onclick="setTopProductsFilter('today',this)">اليوم</button>
+    <button class="filter-btn" onclick="setTopProductsFilter('week',this)">الأسبوع</button>
+    <button class="filter-btn" onclick="setTopProductsFilter('month',this)">الشهر</button>
+    <button class="filter-btn" onclick="setTopProductsFilter('all',this)">كل الوقت</button>
+    <input type="date" id="topDateFrom" onchange="setTopProductsFilter('custom',null)" />
+    <input type="date" id="topDateTo" onchange="setTopProductsFilter('custom',null)" />
+  </div>
+
+  <div class="stats-grid" style="margin-bottom:16px;">
+    <div class="stat-card"><div class="stat-label">عدد الأصناف المباعة</div><div class="stat-value purple" id="topProductsCount">0</div></div>
+    <div class="stat-card"><div class="stat-label">إجمالي القطع المباعة</div><div class="stat-value blue" id="topProductsQty">0</div></div>
+    <div class="stat-card"><div class="stat-label">إجمالي الإيراد</div><div class="stat-value green" id="topProductsRevenue">0 ج</div></div>
+  </div>
+
+  <div class="section-title">ترتيب المنتجات حسب عدد القطع المباعة</div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th>#</th><th>الصنف</th><th>القطع المباعة</th><th>الإيراد</th><th class="admin-only">الربح</th>
+      </tr></thead>
+      <tbody id="topProductsTable"></tbody>
     </table>
   </div>
 </div>
@@ -1219,15 +1259,16 @@ function checkLowStock() {
 function showPage(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('nav button').forEach((b,i) => {
-    b.classList.toggle('active', ['sale','products','reports','debts','expenses','inventory'][i] === name);
+    b.classList.toggle('active', ['sale','products','reports','debts','expenses','inventory','topproducts'][i] === name);
   });
   document.getElementById('page-' + name).classList.add('active');
-  if (name === 'products')  renderProductsTable();
-  if (name === 'reports')   renderReports();
-  if (name === 'sale')      renderProductCards();
-  if (name === 'debts')     renderDebts();
-  if (name === 'expenses')  renderExpenses();
-  if (name === 'inventory') renderInventory();
+  if (name === 'products')     renderProductsTable();
+  if (name === 'reports')      renderReports();
+  if (name === 'sale')         renderProductCards();
+  if (name === 'debts')        renderDebts();
+  if (name === 'expenses')     renderExpenses();
+  if (name === 'inventory')    renderInventory();
+  if (name === 'topproducts')  renderTopProducts();
 }
 
 function updateDate() {
@@ -1552,13 +1593,23 @@ function clearSales() { sales=[]; saveSales(); renderReports(); showToast('تم 
 function printSale(id) {
   const s = sales.find(x => x.id === id);
   if (!s) return;
+  const invoiceNo = sales.indexOf(s) + 1;
+  const cashierName = (currentUser && currentUser.name) ? currentUser.name : '—';
   const pa = document.getElementById('printArea');
   pa.innerHTML = `
     <div class="print-header">
       <h2>محل أسواق الموسكي</h2>
-      <p>${new Date(s.date).toLocaleString('ar-EG')}</p>
+      <p>فاتورة بيع</p>
+    </div>
+    <div class="print-meta">
+      <div class="print-row"><span>رقم الفاتورة</span><span>#${invoiceNo}</span></div>
+      <div class="print-row"><span>التاريخ</span><span>${new Date(s.date).toLocaleString('ar-EG')}</span></div>
+      <div class="print-row"><span>العميل</span><span>${s.customer || 'نقدي'}</span></div>
+      <div class="print-row"><span>الكاشير</span><span>${cashierName}</span></div>
+      ${s.payType ? `<div class="print-row"><span>نوع الدفع</span><span>${s.payType}</span></div>` : ''}
     </div>
     ${s.items.map(x=>`<div class="print-row"><span>${x.name} ×${x.qty}</span><span>${(x.price*x.qty).toLocaleString('ar-EG')} ج</span></div>`).join('')}
+    <div class="print-row total-sep"><span>الإجمالي الفرعي</span><span>${(s.subtotal||0).toLocaleString('ar-EG')} ج</span></div>
     ${s.discount>0?`<div class="print-row"><span>خصم</span><span>- ${s.discount.toLocaleString('ar-EG')} ج</span></div>`:''}
     <div class="print-total">الإجمالي: ${s.grand.toLocaleString('ar-EG')} ج</div>
     <div class="print-footer">شكراً لتعاملكم معنا 🌸</div>`;
@@ -1803,6 +1854,72 @@ function filterByDate(arr, field, filter) {
   });
 }
 
+// ══════════════════════════════════════════
+//  TOP SELLING PRODUCTS
+// ══════════════════════════════════════════
+let topProductsFilter = 'today';
+
+function setTopProductsFilter(type, btn) {
+  topProductsFilter = type;
+  document.querySelectorAll('#page-topproducts .filter-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderTopProducts();
+}
+
+function getSalesInRange(filterType, fromInputId, toInputId) {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  if (filterType === 'today') return sales.filter(s => new Date(s.date) >= today);
+  if (filterType === 'week') {
+    const from = new Date(today); from.setDate(from.getDate() - 6);
+    return sales.filter(s => new Date(s.date) >= from);
+  }
+  if (filterType === 'month') {
+    const from = new Date(now.getFullYear(), now.getMonth(), 1);
+    return sales.filter(s => new Date(s.date) >= from);
+  }
+  if (filterType === 'custom') {
+    const from = document.getElementById(fromInputId)?.value;
+    const to   = document.getElementById(toInputId)?.value;
+    return sales.filter(s => {
+      const d = s.date.slice(0, 10);
+      return (!from || d >= from) && (!to || d <= to);
+    });
+  }
+  return sales;
+}
+
+function renderTopProducts() {
+  // بنستبعد الفواتير المرتجعة عشان مترفعش رقم المنتج اللي اترجع فعلياً
+  const filtered = getSalesInRange(topProductsFilter, 'topDateFrom', 'topDateTo').filter(s => !s.returned);
+  const map = {};
+  filtered.forEach(s => {
+    s.items.forEach(it => {
+      if (!map[it.name]) map[it.name] = { name: it.name, qty: 0, revenue: 0, profit: 0 };
+      map[it.name].qty     += it.qty;
+      map[it.name].revenue += it.price * it.qty;
+      map[it.name].profit  += (it.price - (it.cost || 0)) * it.qty;
+    });
+  });
+  const rows = Object.values(map).sort((a, b) => b.qty - a.qty);
+  const totalQty     = rows.reduce((s, r) => s + r.qty, 0);
+  const totalRevenue = rows.reduce((s, r) => s + r.revenue, 0);
+
+  document.getElementById('topProductsCount').textContent   = rows.length;
+  document.getElementById('topProductsQty').textContent     = totalQty;
+  document.getElementById('topProductsRevenue').textContent = fmt(totalRevenue);
+
+  document.getElementById('topProductsTable').innerHTML = rows.length === 0
+    ? '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:30px;">لا توجد مبيعات في هذه الفترة</td></tr>'
+    : rows.slice(0, 30).map((r, i) => `<tr>
+        <td>${i+1}</td>
+        <td>${r.name}</td>
+        <td style="font-weight:700;">${r.qty}</td>
+        <td>${fmt(r.revenue)}</td>
+        <td class="admin-only" style="color:var(--green);font-weight:700;">${fmt(r.profit)}</td>
+      </tr>`).join('');
+}
+
 function deleteExpense(id) {
   if (!confirm('هتمسح المصروف ده؟')) return;
   expenses = expenses.filter(x => x.id !== id);
@@ -1939,7 +2056,7 @@ function applyRole() {
 function hideEmployeeRestrictions() {
   // إخفاء تبويبات الأدمن من الناف
   const navBtns = document.querySelectorAll('nav button');
-  [2,3,4,5].forEach(i => { if(navBtns[i]) navBtns[i].style.display='none'; });
+  [2,3,4,5,6].forEach(i => { if(navBtns[i]) navBtns[i].style.display='none'; });
 
   // إخفاء عناصر الأدمن
   const style = document.createElement('style');
