@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0a1628" />
+  <link rel="manifest" href="manifest.json" />
   <title>محل أسواق الموسكي</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
@@ -552,6 +554,16 @@ let isApplyingRemote = false; // flag to avoid save-loops when applying remote s
 if (firebaseEnabled) {
   firebase.initializeApp(firebaseConfig);
   db = firebase.firestore();
+  // فعّل التخزين الأوفلاين: أي بيانات بتترسم/تتكتب هتتخزن على الجهاز
+  // وتتبعت تلقائياً لما النت يرجع، من غير أي كود إضافي لكل عملية.
+  db.enablePersistence({ synchronizeTabs: true }).catch(err => {
+    if (err.code === 'failed-precondition') {
+      // فاتح المحل في أكتر من تابّ في نفس المتصفح؛ التخزين الأوفلاين بيشتغل في تاب واحد بس
+      console.warn('Offline persistence: multiple tabs open, disabled in this tab.');
+    } else if (err.code === 'unimplemented') {
+      console.warn('Offline persistence: not supported in this browser.');
+    }
+  });
 }
 </script>
 
@@ -1047,11 +1059,29 @@ function setSyncStatus(text, color) {
   if (el) { el.textContent = text; el.style.color = color || 'var(--muted)'; }
 }
 
+let hasPendingWrites = false;
+
+function updateSyncStatus() {
+  if (!firebaseEnabled) { setSyncStatus('📴 يعمل محلياً فقط', 'var(--muted)'); return; }
+  if (!navigator.onLine) {
+    setSyncStatus('📴 أوفلاين — البيانات هتتزامن تلقائي لما النت يرجع', 'var(--yellow)');
+  } else if (hasPendingWrites) {
+    setSyncStatus('⏳ جاري رفع البيانات المعلّقة...', 'var(--yellow)');
+  } else {
+    setSyncStatus('☁️ متصل ومتزامن', 'var(--green)');
+  }
+}
+
+window.addEventListener('online', updateSyncStatus);
+window.addEventListener('offline', updateSyncStatus);
+
 function pushToCloud() {
   if (!firebaseEnabled || !storeRef || isApplyingRemote) return;
+  // .set() بيتخزن محلياً فوراً بفضل enablePersistence حتى لو مفيش نت،
+  // وبيتبعت لـ Firestore تلقائياً لما الاتصال يرجع - مفيش داعي لأي طابور يدوي.
   storeRef.set({ products, sales, debts, expenses, updatedAt: Date.now() }, { merge: true })
-    .then(() => setSyncStatus('☁️ متصل ومتزامن', 'var(--green)'))
-    .catch(err => { console.error(err); setSyncStatus('⚠️ فشل الحفظ على النت', 'var(--red)'); });
+    .then(() => updateSyncStatus())
+    .catch(err => { console.error(err); setSyncStatus('⚠️ خطأ في الحفظ', 'var(--red)'); });
 }
 
 function startCloudSync() {
@@ -1063,8 +1093,9 @@ function startCloudSync() {
   storeRef = db.collection('cashier_stores').doc(storeId);
   setSyncStatus('⏳ جاري المزامنة...', 'var(--muted)');
 
-  storeRef.onSnapshot(snap => {
+  storeRef.onSnapshot({ includeMetadataChanges: true }, snap => {
     isApplyingRemote = true;
+    hasPendingWrites = snap.metadata.hasPendingWrites;
     if (snap.exists) {
       const data = snap.data();
       products = data.products || [];
@@ -1085,12 +1116,13 @@ function startCloudSync() {
     }
     localStorage.setItem('pos_products', JSON.stringify(products));
     localStorage.setItem('pos_sales', JSON.stringify(sales));
-    setSyncStatus('☁️ متصل ومتزامن', 'var(--green)');
+    updateSyncStatus();
     refreshCurrentView();
     isApplyingRemote = false;
   }, err => {
     console.error(err);
-    setSyncStatus('⚠️ مفيش اتصال بالنت — هيشتغل محلي', 'var(--red)');
+    // مفيش اتصال بالسيرفر — لكن Firestore هيفضل شغال من الكاش المحلي بفضل enablePersistence
+    setSyncStatus('📴 أوفلاين — شغال من آخر نسخة محفوظة', 'var(--yellow)');
     initLocalData();
   });
 }
@@ -2032,6 +2064,20 @@ if (savedRole && savedName) {
     </div>
   </div>
 </div>
+
+<script>
+// ══════════════════════════════════════════
+//  PWA: تسجيل الـ Service Worker
+//  ده اللي بيخلي الصفحة نفسها (الشكل والأزرار) تفتح حتى من غير نت خالص
+// ══════════════════════════════════════════
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(err => {
+      console.warn('Service worker registration failed:', err);
+    });
+  });
+}
+</script>
 
 </body>
 </html>
