@@ -299,7 +299,10 @@
     <div class="cart-panel">
       <div class="cart-header">
         <span>🧾 الفاتورة</span>
-        <span class="cart-badge" id="cartCount">0</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button id="printLastSaleBtn" onclick="printSale(lastSaleId)" style="display:none;background:none;border:1px solid var(--border);color:var(--text);border-radius:8px;padding:4px 10px;font-size:.78rem;cursor:pointer;font-family:'Cairo',sans-serif;">🖨️ طباعة آخر فاتورة</button>
+          <span class="cart-badge" id="cartCount">0</span>
+        </div>
       </div>
       <div class="cart-items" id="cartItems">
         <div class="cart-empty"><span class="empty-icon">🛍️</span>ابدأ بإضافة منتجات</div>
@@ -614,6 +617,7 @@ if (firebaseEnabled) {
 let products = JSON.parse(localStorage.getItem('pos_products') || '[]');
 let sales    = JSON.parse(localStorage.getItem('pos_sales')    || '[]');
 let cart     = [];
+let lastSaleId = null;
 let currentFilter = 'today';
 
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
@@ -1427,6 +1431,9 @@ function confirmSale() {
   closeCheckout();
   clearCart();
   renderProductCards();
+  lastSaleId = saleId;
+  const printBtn = document.getElementById('printLastSaleBtn');
+  if (printBtn) printBtn.style.display = 'inline-flex';
   showToast('🎉 تم البيع بنجاح!');
 }
 
