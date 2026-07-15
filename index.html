@@ -349,7 +349,7 @@
 <div class="page" id="page-reports">
   <div class="page-header">
     <div class="page-title">📊 التقارير</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+    <div class="admin-only" style="display:flex;gap:8px;flex-wrap:wrap;">
       <button class="btn-sm" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);" onclick="exportBackup()">⬇️ تصدير نسخة احتياطية</button>
       <button class="btn-sm" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);" onclick="document.getElementById('importFile').click()">⬆️ استيراد نسخة احتياطية</button>
       <input type="file" id="importFile" accept="application/json" style="display:none;" onchange="importBackup(event)" />
@@ -369,14 +369,14 @@
 
   <div class="stats-grid">
     <div class="stat-card"><div class="stat-label">💰 المبيعات</div><div class="stat-value green" id="rSales">0 ج</div></div>
-    <div class="stat-card"><div class="stat-label">🟢 ربح المبيعات</div><div class="stat-value green" id="rProfit">0 ج</div></div>
-    <div class="stat-card"><div class="stat-label">🔴 المصروفات</div><div class="stat-value" style="color:var(--red);" id="rExpenses">0 ج</div></div>
+    <div class="stat-card admin-only"><div class="stat-label">🟢 ربح المبيعات</div><div class="stat-value green" id="rProfit">0 ج</div></div>
+    <div class="stat-card admin-only"><div class="stat-label">🔴 المصروفات</div><div class="stat-value" style="color:var(--red);" id="rExpenses">0 ج</div></div>
     <div class="stat-card"><div class="stat-label">عدد الفواتير</div><div class="stat-value purple" id="rCount">0</div></div>
     <div class="stat-card"><div class="stat-label">متوسط الفاتورة</div><div class="stat-value yellow" id="rAvg">0 ج</div></div>
     <div class="stat-card"><div class="stat-label">عدد المنتجات</div><div class="stat-value blue" id="totalProducts">0</div></div>
   </div>
 
-  <div class="net-profit-card">
+  <div class="net-profit-card admin-only">
     <div>
       <div class="label">✨ صافي الربح (ربح المبيعات − المصروفات)</div>
       <div style="font-size:.8rem;color:var(--muted);margin-top:4px;" id="netProfitNote"></div>
@@ -389,7 +389,7 @@
     <table>
       <thead><tr>
         <th>#</th><th>التاريخ</th><th>العميل</th><th>المنتجات</th>
-        <th>المجموع</th><th>الخصم</th><th>الإجمالي</th><th>الربح</th><th>إجراءات</th>
+        <th>المجموع</th><th>الخصم</th><th>الإجمالي</th><th class="admin-only">الربح</th><th>إجراءات</th>
       </tr></thead>
       <tbody id="salesTable"></tbody>
     </table>
@@ -1584,7 +1584,7 @@ function renderReports() {
         <td>${fmt(s.subtotal)}</td>
         <td style="color:var(--red);">-${fmt(s.discount)}</td>
         <td style="color:var(--accent2);font-weight:700;">${fmt(s.grand)}</td>
-        <td style="color:var(--green);font-weight:700;">${fmt(s.profit||0)}</td>
+        <td class="admin-only" style="color:var(--green);font-weight:700;">${fmt(s.profit||0)}</td>
         <td><div class="action-btns">
           <button class="action-btn" onclick="printSale('${s.id}')">🖨️</button>
           ${!s.returned?`<button class="action-btn del" onclick="returnSale('${s.id}')">↩️ إرجاع</button>`:''}
@@ -1601,7 +1601,6 @@ function printSale(id) {
   const s = sales.find(x => x.id === id);
   if (!s) return;
   const invoiceNo = sales.indexOf(s) + 1;
-  const cashierName = (currentUser && currentUser.name) ? currentUser.name : '—';
   const pa = document.getElementById('printArea');
   pa.innerHTML = `
     <div class="print-header">
@@ -1612,7 +1611,6 @@ function printSale(id) {
       <div class="print-row"><span>رقم الفاتورة</span><span>#${invoiceNo}</span></div>
       <div class="print-row"><span>التاريخ</span><span>${new Date(s.date).toLocaleString('ar-EG')}</span></div>
       <div class="print-row"><span>العميل</span><span>${s.customer || 'نقدي'}</span></div>
-      <div class="print-row"><span>الكاشير</span><span>${cashierName}</span></div>
       ${s.payType ? `<div class="print-row"><span>نوع الدفع</span><span>${s.payType}</span></div>` : ''}
     </div>
     ${s.items.map(x=>`<div class="print-row"><span>${x.name} ×${x.qty}</span><span>${(x.price*x.qty).toLocaleString('ar-EG')} ج</span></div>`).join('')}
@@ -2063,7 +2061,9 @@ function applyRole() {
 function hideEmployeeRestrictions() {
   // إخفاء تبويبات الأدمن من الناف
   const navBtns = document.querySelectorAll('nav button');
-  [2,3,4,5,6].forEach(i => { if(navBtns[i]) navBtns[i].style.display='none'; });
+  // التقارير (index 2) بقت متاحة للموظف عشان تقدر تطبع أو ترجع أي فاتورة،
+  // لكن الأرقام المالية الحساسة جواها (ربح، مصروفات) متغطية بكلاس admin-only
+  [3,4,5,6].forEach(i => { if(navBtns[i]) navBtns[i].style.display='none'; });
 
   // إخفاء عناصر الأدمن
   const style = document.createElement('style');
