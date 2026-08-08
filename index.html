@@ -333,6 +333,9 @@
       <button class="btn-sm" style="background:rgba(251,191,36,.15);color:#fbbf24;border:1px solid rgba(251,191,36,.3);" onclick="resetToStoreProducts()">🔄 تحميل أصناف المتجر</button>
     </div>
   </div>
+  <div class="search-bar" style="margin-bottom:14px;">
+    <input type="text" id="productSearchInput" placeholder="🔍 ابحث عن منتج بالاسم أو الكود أو الفئة..." oninput="renderProductsTable()" />
+  </div>
   <div class="table-wrap">
     <table>
       <thead id="productsTableHead"><tr>
@@ -1441,7 +1444,21 @@ function confirmSale() {
 //  PRODUCTS TABLE
 // ══════════════════════════════════════════
 function renderProductsTable() {
-  document.getElementById('productsTable').innerHTML = products.map(p => {
+  const searchInput = document.getElementById('productSearchInput');
+  const q = searchInput ? searchInput.value.trim().toLowerCase() : '';
+  const filtered = q ? products.filter(p =>
+    (p.name||'').toLowerCase().includes(q) ||
+    (p.code||'').toLowerCase().includes(q) ||
+    (p.category||'').toLowerCase().includes(q)
+  ) : products;
+
+  if (q && filtered.length === 0) {
+    document.getElementById('productsTable').innerHTML =
+      `<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px;">لا توجد نتائج مطابقة لـ "${q}"</td></tr>`;
+    return;
+  }
+
+  document.getElementById('productsTable').innerHTML = filtered.map(p => {
     const margin = p.cost > 0 ? Math.round(((p.price-p.cost)/p.price)*100) : 0;
     const admin  = isAdmin();
     return `<tr>
