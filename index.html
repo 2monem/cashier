@@ -1429,13 +1429,22 @@ function confirmSale() {
   });
   saveProducts();
 
-  const sale = {id:saleId, date:saleDate, customer, payType, items:cart.map(c=>({name:c.name,qty:c.qty,price:c.price,cost:c.cost||0,category:c.category||'أخرى'})), subtotal, discount, grand, profit};
+  const sale = {id:saleId, date:saleDate, customer, payType, items:cart.map(c=>({productId:c.id,name:c.name,qty:c.qty,price:c.price,cost:c.cost||0,category:c.category||'أخرى'})), subtotal, discount, grand, profit};
   sales.unshift(sale);
   saveSales();
 
   // لو آجل، سجّل دين تلقائي
   if (payType === 'آجل') {
-    debts.unshift({ id: uid(), customer, amount: grand, paid: 0, notes: `فاتورة ${saleId.slice(0,6)}`, date: saleDate });
+    // نربط الدين مباشرة برقم الفاتورة عشان المرتجع يقدر يلغي الدين الصحيح
+    debts.unshift({
+      id: uid(),
+      saleId,
+      customer,
+      amount: grand,
+      paid: 0,
+      notes: `فاتورة ${saleId.slice(0,6)}`,
+      date: saleDate
+    });
     saveDebts();
   }
 
@@ -1617,9 +1626,12 @@ function renderReports() {
     .map(s => ({ sale: s, data: getScopedSaleData(s) }))
     .filter(x => x.data !== null);
 
-  const totalSales  = scoped.reduce((s,x) => s + x.data.grand, 0);
-  const totalProfit = scoped.reduce((s,x) => s + x.data.profit, 0);
-  const count       = scoped.length;
+  // المرتجع يفضل ظاهرًا في سجل الفواتير للمراجعة، لكن لا يدخل في أي إجمالي مالي.
+  const activeScoped = scoped.filter(x => !x.sale.returned);
+
+  const totalSales  = activeScoped.reduce((sum,x) => sum + x.data.grand, 0);
+  const totalProfit = activeScoped.reduce((sum,x) => sum + x.data.profit, 0);
+  const count       = activeScoped.length;
 
   const filteredExp = filterByDate(expenses, 'date', currentFilter);
   // المصروفات مش مقسّمة على الأصناف، فبتظهر بس لما بنشوف "كل المحل"
@@ -1857,12 +1869,14 @@ function deleteDebt(id) {
 }
 
 function renderDebts() {
-  const remaining = debts.map(d => d.amount - (d.paid||0));
+  // الديون الملغاة بسبب مرتجع لا تظهر ضمن إجمالي الديون.
+  const activeDebts = debts.filter(d => !d.cancelled);
+  const remaining = activeDebts.map(d => Math.max(0, d.amount - (d.paid||0)));
   const total     = remaining.reduce((s,v) => s+v, 0);
   document.getElementById('totalDebts').textContent   = fmt(total);
-  document.getElementById('totalDebtors').textContent = debts.filter((_,i)=>remaining[i]>0).length;
-  document.getElementById('debtsTable').innerHTML = debts.map(d => {
-    const rem = d.amount - (d.paid||0);
+  document.getElementById('totalDebtors').textContent = activeDebts.filter((_,i)=>remaining[i]>0).length;
+  document.getElementById('debtsTable').innerHTML = activeDebts.map(d => {
+    const rem = Math.max(0, d.amount - (d.paid||0));
     const dateStr = new Date(d.date).toLocaleDateString('ar-EG');
     return `<tr>
       <td style="font-weight:700;">${d.customer}</td>
@@ -2067,16 +2081,45 @@ function returnSale(saleId) {
   const sale = sales.find(s => s.id === saleId);
   if (!sale) return;
   if (sale.returned) { showToast('الفاتورة دي اترجعت قبل كده', 'error'); return; }
-  if (!confirm(`هترجع فاتورة بقيمة ${fmt(sale.grand)}؟ هيترجع المخزون تلقائي`)) return;
+
+  if (!confirm(`هترجع فاتورة بقيمة ${fmt(sale.grand)}؟\n\nالمخزون والربح والمبيعات هيتحدثوا تلقائيًا.`)) return;
+
+  // 1) رجّع الكميات للمخزون باستخدام ID المنتج إن وُجد، والاسم كحل توافق للفواتير القديمة.
   sale.items.forEach(item => {
-    const p = products.find(x => x.name === item.name);
+    const p = products.find(x => x.id === item.productId) || products.find(x => x.name === item.name);
     if (p) p.stock += item.qty;
   });
+
+  // 2) علّم الفاتورة كمرتجع بدل حذفها، عشان تفضل موجودة في سجل المراجعة.
   sale.returned = true;
+  sale.returnedAt = new Date().toISOString();
+
+  // 3) لو الفاتورة آجل، ألغِ الدين المرتبط بها.
+  //    ندعم أيضًا الديون القديمة التي لم يكن فيها saleId محفوظًا.
+  if (sale.payType === 'آجل') {
+    const legacyNote = `فاتورة ${saleId.slice(0,6)}`;
+    const debt = debts.find(d => d.saleId === saleId || (!d.saleId && d.notes === legacyNote));
+
+    if (debt) {
+      debt.cancelled = true;
+      debt.returnSaleId = saleId;
+      debt.returnedAt = sale.returnedAt;
+      debt.notes = `${debt.notes || legacyNote} — مرتجع`;
+
+      // لو كان تم تحصيل جزء من الدين قبل المرتجع، لا نعتبره دينًا مستحقًا،
+      // لكن نحتفظ بقيمة المدفوع داخل السجل للمراجعة.
+      if ((debt.paid || 0) > 0) {
+        debt.refundDue = debt.paid;
+      }
+    }
+    saveDebts();
+  }
+
   saveProducts();
   saveSales();
   renderReports();
-  showToast('✅ تم إرجاع الفاتورة والمخزون');
+  renderDebts();
+  showToast('✅ تم إرجاع الفاتورة والمخزون وتحديث الأرباح');
 }
 
 // ══════════════════════════════════════════
