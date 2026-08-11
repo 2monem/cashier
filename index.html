@@ -370,6 +370,14 @@
     <input type="date" id="dateTo" onchange="setFilter('custom',null)" />
   </div>
 
+  <!-- Category scope filter (مكياج vs باقي المحل) -->
+  <div class="filter-bar" id="categoryScopeBar">
+    <span style="font-size:.82rem;color:var(--muted);">عرض:</span>
+    <button class="filter-btn active" onclick="setCategoryScope('all',this)">🏪 كل المحل</button>
+    <button class="filter-btn" onclick="setCategoryScope('مكياج',this)">💄 المكياج فقط</button>
+    <button class="filter-btn" onclick="setCategoryScope('rest',this)">📦 باقي المحل (بدون مكياج)</button>
+  </div>
+
   <div class="stats-grid">
     <div class="stat-card"><div class="stat-label">💰 المبيعات</div><div class="stat-value green" id="rSales">0 ج</div></div>
     <div class="stat-card admin-only"><div class="stat-label">🟢 ربح المبيعات</div><div class="stat-value green" id="rProfit">0 ج</div></div>
@@ -1321,7 +1329,7 @@ function addToCart(id) {
     if (ex.qty >= p.stock) { showToast('لا يوجد مخزون كافي', 'error'); return; }
     ex.qty++;
   } else {
-    cart.push({id:p.id, name:p.name, price:p.price, cost:p.cost||0, qty:1});
+    cart.push({id:p.id, name:p.name, price:p.price, cost:p.cost||0, qty:1, category:p.category||'أخرى'});
   }
   renderCart();
   showToast(`✅ تمت إضافة ${p.name}`);
@@ -1421,7 +1429,7 @@ function confirmSale() {
   });
   saveProducts();
 
-  const sale = {id:saleId, date:saleDate, customer, payType, items:cart.map(c=>({name:c.name,qty:c.qty,price:c.price,cost:c.cost||0})), subtotal, discount, grand, profit};
+  const sale = {id:saleId, date:saleDate, customer, payType, items:cart.map(c=>({name:c.name,qty:c.qty,price:c.price,cost:c.cost||0,category:c.category||'أخرى'})), subtotal, discount, grand, profit};
   sales.unshift(sale);
   saveSales();
 
@@ -1569,39 +1577,84 @@ function getFilteredSales() {
   return sales;
 }
 
+// ══════════════════════════════════════════
+//  CATEGORY SCOPE (مكياج فقط / باقي المحل / كل المحل)
+// ══════════════════════════════════════════
+let categoryScope = 'all';
+
+function setCategoryScope(scope, btn) {
+  categoryScope = scope;
+  document.querySelectorAll('#categoryScopeBar .filter-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderReports();
+}
+
+// بياخد فاتورة كاملة ويرجع نصيب النطاق المختار (مكياج / باقي المحل / الكل) منها
+// الخصم بيتقسم على قد نصيب كل جزء من إجمالي الفاتورة عشان يبقى عادل
+function getScopedSaleData(sale) {
+  if (categoryScope === 'all') {
+    return { items: sale.items, subtotal: sale.subtotal, discount: sale.discount||0, grand: sale.grand, profit: sale.profit||0 };
+  }
+  const matches = it => {
+    const cat = it.category || 'أخرى';
+    return categoryScope === 'مكياج' ? cat === 'مكياج' : cat !== 'مكياج';
+  };
+  const items = (sale.items || []).filter(matches);
+  if (!items.length) return null;
+
+  const subtotal = items.reduce((s,it) => s + it.price*it.qty, 0);
+  const cost     = items.reduce((s,it) => s + (it.cost||0)*it.qty, 0);
+  const saleSubtotal   = sale.subtotal || subtotal;
+  const discountShare  = saleSubtotal > 0 ? (sale.discount||0) * (subtotal / saleSubtotal) : 0;
+  const grand  = Math.max(0, subtotal - discountShare);
+  const profit = Math.max(0, grand - cost);
+  return { items, subtotal, discount: discountShare, grand, profit };
+}
+
 function renderReports() {
-  const filtered      = getFilteredSales();
-  const totalSales    = filtered.reduce((s,x) => s+x.grand, 0);
-  const totalProfit   = filtered.reduce((s,x) => s+(x.profit||0), 0);
-  const count         = filtered.length;
-  const filteredExp   = filterByDate(expenses, 'date', currentFilter);
-  const totalExp      = filteredExp.reduce((s,e) => s+e.amount, 0);
-  const netProfit     = totalProfit - totalExp;
+  const dateFiltered = getFilteredSales();
+  const scoped = dateFiltered
+    .map(s => ({ sale: s, data: getScopedSaleData(s) }))
+    .filter(x => x.data !== null);
+
+  const totalSales  = scoped.reduce((s,x) => s + x.data.grand, 0);
+  const totalProfit = scoped.reduce((s,x) => s + x.data.profit, 0);
+  const count       = scoped.length;
+
+  const filteredExp = filterByDate(expenses, 'date', currentFilter);
+  // المصروفات مش مقسّمة على الأصناف، فبتظهر بس لما بنشوف "كل المحل"
+  const totalExp  = categoryScope === 'all' ? filteredExp.reduce((s,e) => s+e.amount, 0) : 0;
+  const netProfit = totalProfit - totalExp;
 
   document.getElementById('rSales').textContent    = fmt(totalSales);
   document.getElementById('rProfit').textContent   = fmt(totalProfit);
   document.getElementById('rExpenses').textContent = fmt(totalExp);
   document.getElementById('rCount').textContent    = count;
   document.getElementById('rAvg').textContent      = fmt(count ? Math.round(totalSales/count) : 0);
-  document.getElementById('totalProducts').textContent = products.length;
+  document.getElementById('totalProducts').textContent = categoryScope === 'مكياج'
+    ? products.filter(p => p.category === 'مكياج').length
+    : categoryScope === 'rest'
+      ? products.filter(p => p.category !== 'مكياج').length
+      : products.length;
 
   const netEl = document.getElementById('rNetProfit');
   netEl.textContent = fmt(netProfit);
   netEl.style.color = netProfit >= 0 ? 'var(--green)' : 'var(--red)';
-  document.getElementById('netProfitNote').textContent =
-    `ربح المبيعات ${fmt(totalProfit)} − مصروفات ${fmt(totalExp)}`;
+  document.getElementById('netProfitNote').textContent = categoryScope === 'all'
+    ? `ربح المبيعات ${fmt(totalProfit)} − مصروفات ${fmt(totalExp)}`
+    : `ربح ${categoryScope === 'مكياج' ? 'المكياج' : 'باقي المحل'} فقط — المصروفات العامة مش متقسمة بالفئة`;
 
-  document.getElementById('salesTable').innerHTML = filtered.length === 0
+  document.getElementById('salesTable').innerHTML = scoped.length === 0
     ? '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:30px;">لا توجد مبيعات في هذه الفترة</td></tr>'
-    : filtered.map((s,i) => `<tr style="${s.returned?'opacity:.5;text-decoration:line-through;':''}">
+    : scoped.map(({sale:s, data:d}) => `<tr style="${s.returned?'opacity:.5;text-decoration:line-through;':''}">
         <td>#${sales.indexOf(s)+1}</td>
         <td style="font-size:.8rem;">${new Date(s.date).toLocaleString('ar-EG')}</td>
         <td style="font-size:.8rem;">${s.customer||'نقدي'} ${s.payType==='آجل'?'<span class="badge badge-yellow">آجل</span>':''} ${s.returned?'<span class="badge badge-red">مرتجع</span>':''}</td>
-        <td style="font-size:.8rem;">${s.items.map(x=>`${x.name}×${x.qty}`).join('، ')}</td>
-        <td>${fmt(s.subtotal)}</td>
-        <td style="color:var(--red);">-${fmt(s.discount)}</td>
-        <td style="color:var(--accent2);font-weight:700;">${fmt(s.grand)}</td>
-        <td class="admin-only" style="color:var(--green);font-weight:700;">${fmt(s.profit||0)}</td>
+        <td style="font-size:.8rem;">${d.items.map(x=>`${x.name}×${x.qty}`).join('، ')}${categoryScope!=='all' && d.items.length < s.items.length ? ' <span style="color:var(--muted)">(جزء من الفاتورة)</span>' : ''}</td>
+        <td>${fmt(d.subtotal)}</td>
+        <td style="color:var(--red);">-${fmt(Math.round(d.discount))}</td>
+        <td style="color:var(--accent2);font-weight:700;">${fmt(Math.round(d.grand))}</td>
+        <td class="admin-only" style="color:var(--green);font-weight:700;">${fmt(Math.round(d.profit))}</td>
         <td><div class="action-btns">
           <button class="action-btn" onclick="printSale('${s.id}')">🖨️</button>
           ${!s.returned?`<button class="action-btn del" onclick="returnSale('${s.id}')">↩️ إرجاع</button>`:''}
