@@ -221,6 +221,13 @@
       #categoryFilter{gap:5px;padding:0 0 8px;}
     }
 
+    .department-switch{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:0 12px;}
+    .department-label{font-size:.75rem;color:var(--muted);font-weight:700;}
+    .department-btn{border:1px solid var(--border);background:var(--surface2);color:var(--muted);padding:6px 11px;border-radius:9px;cursor:pointer;font-family:Cairo,sans-serif;font-size:.76rem;font-weight:700;transition:.15s;}
+    .department-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+    .dept-title{font-size:.78rem;color:var(--accent2);font-weight:700;margin:0 12px 8px;}
+    @media(max-width:700px){.department-switch{order:3;width:100%;margin-top:8px}.department-label{display:none;}}
+
     @media(max-width:480px){
       nav button{font-size:.68rem;padding:5px 8px;}
       .stats-grid{grid-template-columns:repeat(2,1fr);}
@@ -260,6 +267,12 @@
 
 <header>
   <div class="logo">محل <span>أسواق الموسكي</span></div>
+  <div class="department-switch" id="departmentSwitch">
+    <span class="department-label">القسم:</span>
+    <button class="department-btn active" data-dept="store" onclick="switchDepartment('store',this)">🏪 المحل</button>
+    <button class="department-btn" data-dept="makeup" onclick="switchDepartment('makeup',this)">💄 المكياج</button>
+    <button class="department-btn" data-dept="accessories" onclick="switchDepartment('accessories',this)">💍 الإكسسوارات</button>
+  </div>
   <nav>
     <button class="active" onclick="showPage('sale')">🛒 البيع</button>
     <button onclick="showPage('products')">📦 المنتجات</button>
@@ -279,6 +292,7 @@
 
 <!-- SALE PAGE -->
 <div class="page active" id="page-sale">
+  <div class="dept-title" id="saleDeptTitle">🏪 قسم المحل</div>
   <div class="sale-layout">
     <div class="products-panel">
       <div class="search-bar">
@@ -291,6 +305,7 @@
         <button class="filter-btn" onclick="setCatFilter('عناية بالشعر',this)">🧴 شعر</button>
         <button class="filter-btn" onclick="setCatFilter('عناية بالجسم',this)">🧼 جسم</button>
         <button class="filter-btn" onclick="setCatFilter('مكياج',this)">💄 مكياج</button>
+        <button class="filter-btn" onclick="setCatFilter('إكسسوارات',this)">💍 إكسسوارات</button>
         <button class="filter-btn" onclick="setCatFilter('منظفات',this)">🫧 منظفات</button>
         <button class="filter-btn" onclick="setCatFilter('أخرى',this)">📦 أخرى</button>
       </div>
@@ -326,6 +341,7 @@
 
 <!-- PRODUCTS PAGE -->
 <div class="page" id="page-products">
+  <div class="dept-title" id="productsDeptTitle">🏪 قسم المحل</div>
   <div class="page-header">
     <div class="page-title">📦 إدارة المنتجات</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
@@ -350,6 +366,7 @@
 
 <!-- REPORTS PAGE -->
 <div class="page" id="page-reports">
+  <div class="dept-title" id="reportsDeptTitle">🏪 قسم المحل</div>
   <div class="page-header">
     <div class="page-title">📊 التقارير</div>
     <div class="admin-only" style="display:flex;gap:8px;flex-wrap:wrap;">
@@ -370,12 +387,8 @@
     <input type="date" id="dateTo" onchange="setFilter('custom',null)" />
   </div>
 
-  <!-- Category scope filter (مكياج vs باقي المحل) -->
-  <div class="filter-bar" id="categoryScopeBar">
-    <span style="font-size:.82rem;color:var(--muted);">عرض:</span>
-    <button class="filter-btn active" onclick="setCategoryScope('all',this)">🏪 كل المحل</button>
-    <button class="filter-btn" onclick="setCategoryScope('مكياج',this)">💄 المكياج فقط</button>
-    <button class="filter-btn" onclick="setCategoryScope('rest',this)">📦 باقي المحل (بدون مكياج)</button>
+  <div class="filter-bar" id="categoryScopeBar" style="justify-content:center;">
+    <span style="font-size:.82rem;color:var(--muted);">التقرير يعرض القسم المختار بالأعلى فقط — الفواتير والمخزون مشتركان.</span>
   </div>
 
   <div class="stats-grid">
@@ -554,7 +567,7 @@
         <select id="fCategory">
           <option>عناية بالبشرة</option><option>عناية بالشعر</option>
           <option>عناية بالجسم</option><option>منظفات</option>
-          <option>مكياج</option><option>عطور</option><option>أخرى</option>
+          <option>مكياج</option><option>إكسسوارات</option><option>عطور</option><option>أخرى</option>
         </select>
       </div>
       <div class="form-group"><label>الرمز (إيموجي)</label><input type="text" id="fIcon" placeholder="🧴" maxlength="4" /></div>
@@ -1293,11 +1306,52 @@ function updateDate() {
 updateDate();
 
 // ══════════════════════════════════════════
+//  DEPARTMENTS / الأقسام
+// ══════════════════════════════════════════
+let currentDepartment = 'store';
+const DEPT_NAMES = {store:'🏪 قسم المحل', makeup:'💄 قسم المكياج', accessories:'💍 قسم الإكسسوارات'};
+const DEPT_CATS = {store:null, makeup:'مكياج', accessories:'إكسسوارات'};
+function productInDepartment(p, dept=currentDepartment){
+  if(dept === 'makeup') return p.category === 'مكياج';
+  if(dept === 'accessories') return p.category === 'إكسسوارات';
+  return p.category !== 'مكياج' && p.category !== 'إكسسوارات';
+}
+function getDepartmentProducts(dept=currentDepartment){ return products.filter(p=>productInDepartment(p,dept)); }
+function switchDepartment(dept, btn){
+  currentDepartment = dept;
+  categoryScope = dept === 'makeup' ? 'مكياج' : dept === 'accessories' ? 'إكسسوارات' : 'rest';
+  document.querySelectorAll('.department-btn').forEach(b=>b.classList.toggle('active', b.dataset.dept===dept));
+  ['saleDeptTitle','productsDeptTitle','reportsDeptTitle'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent=DEPT_NAMES[dept]; });
+  activeCat = 'all';
+  document.querySelectorAll('#categoryFilter .filter-btn').forEach(b=>b.classList.remove('active'));
+  const allBtn=document.querySelector('#categoryFilter .filter-btn'); if(allBtn) allBtn.classList.add('active');
+  const addBtn=document.querySelector('#page-products .page-header .btn-sm');
+  if(addBtn) addBtn.textContent = dept==='makeup' ? '+ إضافة منتج مكياج' : dept==='accessories' ? '+ إضافة إكسسوار' : '+ إضافة منتج';
+  const catSelect = document.getElementById('fCategory');
+  if(catSelect){
+    catSelect.disabled = dept !== 'store';
+    if(dept==='makeup') catSelect.value='مكياج';
+    else if(dept==='accessories') catSelect.value='إكسسوارات';
+  }
+  updateCategoryButtons();
+  renderProductCards(); renderProductsTable(); renderReports(); renderInventory(); renderTopProducts();
+}
+function updateCategoryButtons(){
+  const buttons=document.querySelectorAll('#categoryFilter .filter-btn');
+  buttons.forEach(b=>{
+    const txt=b.textContent.trim();
+    if(currentDepartment==='makeup') b.style.display = txt.includes('مكياج') || txt==='الكل' ? '' : 'none';
+    else if(currentDepartment==='accessories') b.style.display = txt.includes('إكسسوارات') || txt==='الكل' ? '' : 'none';
+    else b.style.display = (txt.includes('مكياج') || txt.includes('إكسسوارات')) ? 'none' : '';
+  });
+}
+
+// ══════════════════════════════════════════
 //  PRODUCT CARDS
 // ══════════════════════════════════════════
 function renderProductCards() {
   const q = document.getElementById('searchInput').value.trim().toLowerCase();
-  const filtered = products.filter(p => {
+  const filtered = getDepartmentProducts().filter(p => {
     const matchQ   = !q || p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q) || (p.code||'').toLowerCase().includes(q);
     const matchCat = activeCat === 'all' || p.category === activeCat;
     return matchQ && matchCat;
@@ -1463,11 +1517,12 @@ function confirmSale() {
 function renderProductsTable() {
   const searchInput = document.getElementById('productSearchInput');
   const q = searchInput ? searchInput.value.trim().toLowerCase() : '';
-  const filtered = q ? products.filter(p =>
+  const deptProducts = getDepartmentProducts();
+  const filtered = q ? deptProducts.filter(p =>
     (p.name||'').toLowerCase().includes(q) ||
     (p.code||'').toLowerCase().includes(q) ||
     (p.category||'').toLowerCase().includes(q)
-  ) : products;
+  ) : deptProducts;
 
   if (q && filtered.length === 0) {
     document.getElementById('productsTable').innerHTML =
@@ -1514,7 +1569,7 @@ function openProductForm(id) {
   document.getElementById('fId').value       = p ? p.id : '';
   document.getElementById('fName').value     = p ? p.name : '';
   document.getElementById('fCode').value     = p ? (p.code||'') : '';
-  document.getElementById('fCategory').value = p ? p.category : 'عناية بالبشرة';
+  document.getElementById('fCategory').value = p ? p.category : (currentDepartment==='makeup' ? 'مكياج' : currentDepartment==='accessories' ? 'إكسسوارات' : 'عناية بالبشرة');
   document.getElementById('fCost').value     = p ? (p.cost||'') : '';
   document.getElementById('fPrice').value    = p ? p.price : '';
   document.getElementById('fStock').value    = p ? p.stock : '';
@@ -1532,7 +1587,7 @@ function saveProduct() {
   const price = parseFloat(document.getElementById('fPrice').value);
   const stock = parseInt(document.getElementById('fStock').value);
   const alertAt = parseInt(document.getElementById('fAlert').value) || 5;
-  const cat   = document.getElementById('fCategory').value;
+  const cat   = currentDepartment==='makeup' ? 'مكياج' : currentDepartment==='accessories' ? 'إكسسوارات' : document.getElementById('fCategory').value;
   const icon  = document.getElementById('fIcon').value.trim() || '📦';
 
   if (!name || isNaN(cost) || isNaN(price) || isNaN(stock)) {
@@ -1589,7 +1644,7 @@ function getFilteredSales() {
 // ══════════════════════════════════════════
 //  CATEGORY SCOPE (مكياج فقط / باقي المحل / كل المحل)
 // ══════════════════════════════════════════
-let categoryScope = 'all';
+let categoryScope = 'rest';
 
 function setCategoryScope(scope, btn) {
   categoryScope = scope;
@@ -1606,7 +1661,9 @@ function getScopedSaleData(sale) {
   }
   const matches = it => {
     const cat = it.category || 'أخرى';
-    return categoryScope === 'مكياج' ? cat === 'مكياج' : cat !== 'مكياج';
+    if (categoryScope === 'مكياج') return cat === 'مكياج';
+    if (categoryScope === 'إكسسوارات') return cat === 'إكسسوارات';
+    return cat !== 'مكياج' && cat !== 'إكسسوارات';
   };
   const items = (sale.items || []).filter(matches);
   if (!items.length) return null;
@@ -1645,16 +1702,18 @@ function renderReports() {
   document.getElementById('rAvg').textContent      = fmt(count ? Math.round(totalSales/count) : 0);
   document.getElementById('totalProducts').textContent = categoryScope === 'مكياج'
     ? products.filter(p => p.category === 'مكياج').length
-    : categoryScope === 'rest'
-      ? products.filter(p => p.category !== 'مكياج').length
-      : products.length;
+    : categoryScope === 'إكسسوارات'
+      ? products.filter(p => p.category === 'إكسسوارات').length
+      : categoryScope === 'rest'
+        ? products.filter(p => p.category !== 'مكياج' && p.category !== 'إكسسوارات').length
+        : products.length;
 
   const netEl = document.getElementById('rNetProfit');
   netEl.textContent = fmt(netProfit);
   netEl.style.color = netProfit >= 0 ? 'var(--green)' : 'var(--red)';
   document.getElementById('netProfitNote').textContent = categoryScope === 'all'
     ? `ربح المبيعات ${fmt(totalProfit)} − مصروفات ${fmt(totalExp)}`
-    : `ربح ${categoryScope === 'مكياج' ? 'المكياج' : 'باقي المحل'} فقط — المصروفات العامة مش متقسمة بالفئة`;
+    : `ربح ${categoryScope === 'مكياج' ? 'المكياج' : categoryScope === 'إكسسوارات' ? 'الإكسسوارات' : 'باقي المحل'} فقط — المصروفات العامة مش متقسمة بالفئة`;
 
   document.getElementById('salesTable').innerHTML = scoped.length === 0
     ? '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:30px;">لا توجد مبيعات في هذه الفترة</td></tr>'
@@ -1983,7 +2042,7 @@ function renderTopProducts() {
   const filtered = getSalesInRange(topProductsFilter, 'topDateFrom', 'topDateTo').filter(s => !s.returned);
   const map = {};
   filtered.forEach(s => {
-    s.items.forEach(it => {
+    s.items.filter(it => productInDepartment(it)).forEach(it => {
       if (!map[it.name]) map[it.name] = { name: it.name, qty: 0, revenue: 0, profit: 0 };
       map[it.name].qty     += it.qty;
       map[it.name].revenue += it.price * it.qty;
@@ -2036,15 +2095,16 @@ function renderExpenses() {
 //  INVENTORY REPORT (الجرد)
 // ══════════════════════════════════════════
 function renderInventory() {
-  const total    = products.length;
-  const costVal  = products.reduce((s,p) => s + (p.cost||0)*p.stock, 0);
-  const sellVal  = products.reduce((s,p) => s + p.price*p.stock, 0);
-  const outCount = products.filter(p => p.stock === 0).length;
+  const deptProducts = getDepartmentProducts();
+  const total    = deptProducts.length;
+  const costVal  = deptProducts.reduce((s,p) => s + (p.cost||0)*p.stock, 0);
+  const sellVal  = deptProducts.reduce((s,p) => s + p.price*p.stock, 0);
+  const outCount = deptProducts.filter(p => p.stock === 0).length;
   document.getElementById('invTotal').textContent   = total;
   document.getElementById('invCostVal').textContent = fmt(costVal);
   document.getElementById('invSellVal').textContent = fmt(sellVal);
   document.getElementById('invOut').textContent     = outCount;
-  document.getElementById('inventoryBody').innerHTML = products.map(p => {
+  document.getElementById('inventoryBody').innerHTML = deptProducts.map(p => {
     const status = p.stock===0 ? '<span class="badge badge-red">نفد</span>' : p.stock<=(p.alertAt||1) ? '<span class="badge badge-yellow">منخفض</span>' : '<span class="badge badge-green">متاح</span>';
     return `<tr>
       <td style="color:var(--muted);font-size:.8rem;">${p.code||'—'}</td>
@@ -2060,7 +2120,7 @@ function renderInventory() {
 
 function printInventory() {
   const w = window.open('','_blank');
-  const rows = products.map(p=>`<tr><td>${p.code||'—'}</td><td>${p.icon||''} ${p.name}</td><td>${p.category}</td><td>${p.cost||0}</td><td>${p.price}</td><td>${p.stock}</td><td>${p.stock===0?'نفد':p.stock<=(p.alertAt||1)?'منخفض':'متاح'}</td></tr>`).join('');
+  const rows = getDepartmentProducts().map(p=>`<tr><td>${p.code||'—'}</td><td>${p.icon||''} ${p.name}</td><td>${p.category}</td><td>${p.cost||0}</td><td>${p.price}</td><td>${p.stock}</td><td>${p.stock===0?'نفد':p.stock<=(p.alertAt||1)?'منخفض':'متاح'}</td></tr>`).join('');
   w.document.write(`<html dir="rtl"><head><title>تقرير الجرد</title><style>body{font-family:Arial;font-size:12px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:6px;text-align:right}th{background:#f0f0f0}h2{text-align:center}</style></head><body><h2>📋 تقرير الجرد — محل أسواق الموسكي</h2><p style="text-align:center">${new Date().toLocaleDateString('ar-EG')}</p><table><thead><tr><th>الكود</th><th>الصنف</th><th>الفئة</th><th>سعر الشراء</th><th>سعر البيع</th><th>الكمية</th><th>الحالة</th></tr></thead><tbody>${rows}</tbody></table></body></html>`);
   w.print();
 }
@@ -2303,6 +2363,9 @@ if (savedRole && savedName) {
 </div>
 
 <script>
+// تهيئة القسم الافتراضي بعد تحميل كل الدوال
+switchDepartment('store', document.querySelector('.department-btn[data-dept="store"]'));
+
 // ══════════════════════════════════════════
 //  PWA: تسجيل الـ Service Worker
 //  ده اللي بيخلي الصفحة نفسها (الشكل والأزرار) تفتح حتى من غير نت خالص
