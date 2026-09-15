@@ -1,116 +1,758 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#0a1628" />
-  <link rel="manifest" href="manifest.json" />
-  <title>محل أسواق الموسكي</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>أسواق الموسكي - نظام إدارة المبيعات والمخزون POS</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
     :root {
-      --bg:#050d1a;--surface:#0a1628;--surface2:#0f2040;--border:#1a3a6e;
-      --accent:#1d6fe8;--accent2:#60a5fa;--green:#22c55e;--red:#ef4444;
-      --yellow:#f59e0b;--text:#e0eaff;--muted:#6b8cbc;--radius:14px;
-      --shadow:0 4px 24px rgba(0,0,0,0.5);
-      --accent-glow:0 0 20px rgba(29,111,232,0.3);
+      --primary: #4f46e5;
+      --primary-dark: #4338ca;
+      --secondary: #ec4899;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --purple: #8b5cf6;
+      --blue: #3b82f6;
     }
-    *{margin:0;padding:0;box-sizing:border-box;}
-    body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:30px;}
 
-    /* HEADER */
-    header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 16px;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:100;flex-wrap:wrap;gap:8px;}
-    .logo{font-size:1.1rem;font-weight:900;color:var(--accent2);}
-    .logo span{color:var(--text);}
-    nav{display:flex;gap:4px;flex-wrap:wrap;}
-    nav button{background:none;border:none;color:var(--muted);font-family:'Cairo',sans-serif;font-size:0.85rem;padding:7px 14px;border-radius:8px;cursor:pointer;transition:all .2s;white-space:nowrap;}
-    nav button:hover{background:var(--surface2);color:var(--text);}
-    nav button.active{background:var(--accent);color:#fff;box-shadow:var(--accent-glow);}
-    
-    .container {max-width: 1100px; margin: 20px auto; padding: 0 16px;}
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
 
-    /* PROFIT SECTION STYLES */
-    .profit-section {background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-top: 20px;}
-    .section-title {font-size: 1.2rem; font-weight: 700; color: var(--accent2); margin-bottom: 16px;}
-    .profit-grid {display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;}
-    .card {background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 18px; text-align: center;}
-    .card span {font-size: 0.9rem; color: var(--muted); display: block; margin-bottom: 8px;}
-    .card h3 {font-size: 1.5rem; font-weight: 900;}
-    
-    .card.makeup h3 {color: var(--accent2);}
-    .card.acc h3 {color: var(--yellow);}
-    .card.total {border-color: var(--green); background: rgba(34, 197, 94, 0.05);}
-    .card.total h3 {color: var(--green);}
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+      direction: rtl;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 260px;
+      background: var(--card-bg);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      right: 0;
+      z-index: 100;
+      transition: transform 0.3s ease;
+    }
+
+    .brand {
+      padding: 24px 20px;
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--primary);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-links {
+      list-style: none;
+      padding: 16px 8px;
+      flex: 1;
+    }
+
+    .nav-item {
+      padding: 12px 16px;
+      margin-bottom: 4px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      transition: all 0.2s;
+    }
+
+    .nav-item:hover, .nav-item.active {
+      background-color: #e0e7ff;
+      color: var(--primary);
+    }
+
+    .user-info {
+      padding: 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .role-badge {
+      background: #e0e7ff;
+      color: var(--primary);
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    /* Main Content */
+    .main-content {
+      margin-right: 260px;
+      flex: 1;
+      padding: 24px;
+      max-width: calc(100% - 260px);
+    }
+
+    .page {
+      display: none;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    .page-header {
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .page-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    /* Grids & Cards */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--card-bg);
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .stat-label {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 800;
+    }
+
+    .stat-value.purple { color: var(--purple); }
+    .stat-value.yellow { color: var(--warning); }
+    .stat-value.blue { color: var(--blue); }
+
+    .pos-container {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 20px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      padding: 20px;
+    }
+
+    /* Form Controls */
+    input, select, button {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: 0.95rem;
+      outline: none;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--primary);
+    }
+
+    .btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover { background: var(--primary-dark); }
+    .btn-danger { background: var(--danger); }
+    .btn-danger:hover { background: #dc2626; }
+    .btn-success { background: var(--success); }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: right;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      background: #f1f5f9;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.active { display: flex; }
+
+    .modal-content {
+      background: white;
+      padding: 24px;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 500px;
+    }
+
+    /* Receipt Print Style */
+    @media print {
+      body * { visibility: hidden; }
+      #printableReceipt, #printableReceipt * { visibility: visible; }
+      #printableReceipt {
+        position: absolute;
+        left: 0; top: 0;
+        width: 80mm;
+        padding: 10px;
+        font-size: 12px;
+      }
+    }
   </style>
 </head>
 <body>
 
-  <header>
-    <div class="logo">محل <span>أسواق الموسكي</span></div>
-    <nav>
-      <button class="active">تقرير الأرباح</button>
-    </nav>
-  </header>
+  <!-- القائمة الجانبية -->
+  <aside class="sidebar">
+    <div class="brand">🏪 أسواق الموسكي</div>
+    <ul class="nav-links">
+      <li class="nav-item active" onclick="switchPage('pos')">🛒 نقطة البيع</li>
+      <li class="nav-item" onclick="switchPage('inventory')">📦 المخزون والجرد</li>
+      <li class="nav-item admin-only" onclick="switchPage('reports')">📊 التقارير والأرباح</li>
+    </ul>
+    <div class="user-info">
+      <div>
+        <div id="userNameDisplay" style="font-weight: 700;">المستخدم</div>
+        <span class="role-badge" id="userRoleDisplay">أدمن</span>
+      </div>
+      <button class="btn" style="width: auto; padding: 6px 10px;" onclick="toggleRole()">تبديل</button>
+    </div>
+  </aside>
 
-  <main class="container">
-    <section class="profit-section">
-      <div class="section-title">📊 تفاصيل أرباح المحل</div>
-      
-      <div class="profit-grid">
-        <div class="card makeup">
-          <span>💄 ربح المكياج</span>
-          <h3 id="makeup-profit">0 ج.م</h3>
+  <!-- المحتوى الرئيسي -->
+  <main class="main-content">
+
+    <!-- 1. شاشة نقطة البيع POS -->
+    <section id="page-pos" class="page active">
+      <div class="page-header">
+        <h1 class="page-title">نقطة البيع (POS)</h1>
+      </div>
+      <div class="pos-container">
+        <!-- البحث واختيار المنتجات -->
+        <div class="card">
+          <input type="text" id="posSearch" placeholder="ابحث باسم المنتج أو الكود (Barcode)..." oninput="renderPosProducts()">
+          <div id="posProductsList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin-top: 15px; max-height: 500px; overflow-y: auto;"></div>
         </div>
 
-        <div class="card acc">
-          <span>💍 ربح الاكسسوارات</span>
-          <h3 id="acc-profit">0 ج.م</h3>
-        </div>
-
-        <div class="card total">
-          <span>💰 إجمالي ربح المحل</span>
-          <h3 id="total-profit">0 ج.م</h3>
+        <!-- سلة الشراء -->
+        <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <h3>سلة المبيعات</h3>
+            <table id="cartTable">
+              <thead>
+                <tr>
+                  <th>المنتج</th>
+                  <th>العدد</th>
+                  <th>السعر</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="cartBody"></tbody>
+            </table>
+          </div>
+          <div style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 15px;">
+            <div style="display: flex; justify-content: space-between; font-weight: 800; font-size: 1.2rem; margin-bottom: 12px;">
+              <span>الإجمالي:</span>
+              <span id="cartTotal">0 ج</span>
+            </div>
+            <button class="btn btn-success" style="padding: 14px;" onclick="openCheckoutModal()">إتمام عملية البيع</button>
+          </div>
         </div>
       </div>
     </section>
+
+    <!-- 2. شاشة المخزون -->
+    <section id="page-inventory" class="page">
+      <div class="page-header">
+        <h1 class="page-title">إدارة المخزون والجرد</h1>
+        <button class="btn admin-only" style="width: auto;" onclick="openAddProductModal()">+ إضافة منتج جديد</button>
+      </div>
+      <div class="card">
+        <input type="text" id="invSearch" placeholder="بحث في المخزون..." oninput="renderInventory()">
+        <table>
+          <thead>
+            <tr>
+              <th>كود المنتج</th>
+              <th>الاسم</th>
+              <th>الفئة</th>
+              <th>سعر التكلفة</th>
+              <th>سعر البيع</th>
+              <th>الكمية</th>
+              <th class="admin-only">إجراءات</th>
+            </tr>
+          </thead>
+          <tbody id="inventoryBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 3. شاشة التقارير الأسبوعية والشاملة -->
+    <section id="page-reports" class="page">
+      <div class="page-header">
+        <h1 class="page-title">التقارير المالية والأرباح</h1>
+        <select id="reportPeriod" style="width: 180px;" onchange="updateReports()">
+          <option value="today">اليوم</option>
+          <option value="week" selected>هذا الأسبوع</option>
+          <option value="month">هذا الشهر</option>
+          <option value="all">الكل</option>
+        </select>
+      </div>
+
+      <!-- بطاقات الإحصائيات العامة -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">إجمالي المبيعات</div>
+          <div class="stat-value" id="rTotalSales">0 ج</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">عدد الفواتير</div>
+          <div class="stat-value" id="rInvoiceCount">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">إجمالي الربح العام</div>
+          <div class="stat-value" id="rProfit" style="color: var(--success);">0 ج</div>
+        </div>
+      </div>
+
+      <!-- بطاقات الأرباح المنفصلة للـ Admin -->
+      <div class="stats-grid admin-only" style="margin-top: 14px;">
+        <div class="stat-card">
+          <div class="stat-label">💄 ربح المكياج</div>
+          <div class="stat-value purple" id="rMakeupProfit">0 ج</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">💍 ربح الإكسسوارات</div>
+          <div class="stat-value yellow" id="rAccProfit">0 ج</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">🏪 ربح بقية أصناف المحل</div>
+          <div class="stat-value blue" id="rOtherProfit">0 ج</div>
+        </div>
+      </div>
+
+      <!-- جدول الفواتير -->
+      <div class="card" style="margin-top: 20px;">
+        <h3>سجل الفواتير</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>رقم الفاتورة</th>
+              <th>التاريخ</th>
+              <th>عدد العناصر</th>
+              <th>الإجمالي</th>
+              <th>الربح</th>
+            </tr>
+          </thead>
+          <tbody id="reportsTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
   </main>
 
+  <!-- Modal إضافة / تعديل منتج -->
+  <div class="modal" id="productModal">
+    <div class="modal-content">
+      <h3 id="modalProductTitle" style="margin-bottom: 15px;">إضافة منتج</h3>
+      <form id="productForm" onsubmit="saveProduct(event)">
+        <input type="hidden" id="pId">
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <input type="text" id="pCode" placeholder="كود المنتج (Barcode)" required>
+          <input type="text" id="pName" placeholder="اسم المنتج" required>
+          <select id="pCategory" required>
+            <option value="مكياج">مكياج</option>
+            <option value="إكسسوارات">إكسسوارات</option>
+            <option value="عام">أصناف أخرى</option>
+          </select>
+          <input type="number" id="pCost" placeholder="سعر التكلفة" step="0.5" required>
+          <input type="number" id="pPrice" placeholder="سعر البيع" step="0.5" required>
+          <input type="number" id="pQty" placeholder="الكمية المتاحة" required>
+          <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <button type="submit" class="btn btn-success">حفظ</button>
+            <button type="button" class="btn btn-danger" onclick="closeModal('productModal')">إلغاء</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal الشراء/الفاتورة -->
+  <div class="modal" id="checkoutModal">
+    <div class="modal-content">
+      <h3>إتمام عملية البيع</h3>
+      <p style="margin: 15px 0;" id="checkoutTotalText">المبلغ المطلوب: 0 ج</p>
+      <button class="btn btn-success" onclick="processSale()">تأكيد وطباعة الفاتورة</button>
+      <button class="btn btn-danger" style="margin-top: 8px;" onclick="closeModal('checkoutModal')">إلغاء</button>
+    </div>
+  </div>
+
+  <!-- خاوية الطباعة -->
+  <div id="printableReceipt" style="display: none;"></div>
+
   <script>
-    // جلب المبيعات المخزنة من localStorage (أو مصفوفة فارغة إذا لم توجد)
-    const salesData = JSON.parse(localStorage.getItem('sales_history') || '[]');
+    // Context State & Data Initialisation
+    let currentRole = 'admin'; // 'admin' or 'staff'
+    let products = JSON.parse(localStorage.getItem('mosky_products')) || [
+      { id: '1', code: '101', name: 'روج ماك', category: 'مكياج', cost: 50, price: 90, qty: 15 },
+      { id: '2', code: '102', name: 'سلسلة فضة', category: 'إكسسوارات', cost: 30, price: 70, qty: 8 },
+      { id: '3', code: '103', name: 'مناديل مبللة', category: 'عام', cost: 10, price: 20, qty: 50 }
+    ];
+    let sales = JSON.parse(localStorage.getItem('mosky_sales')) || [];
+    let cart = [];
 
-    function calculateProfits() {
-      let makeupProfit = 0;
-      let accProfit = 0;
+    // Core Init
+    window.onload = function() {
+      saveData();
+      renderPosProducts();
+      renderInventory();
+      updateReports();
+      applyRolePermissions();
+    };
 
-      salesData.forEach(item => {
-        // حماية البيانات: حساب التكلفة الافتراضية 0 إن لم توجد تجنباً للأخطاء
-        const sellPrice = item.price || 0;
-        const costPrice = item.cost || 0;
-        const qty = item.qty || 1;
-        const profit = (sellPrice - costPrice) * qty;
-
-        // التصنيف بناءً على نوع المنتج
-        if (item.category === 'مكياج') {
-          makeupProfit += profit;
-        } else if (item.category === 'اكسسوارات' || item.category === 'إكسسوارات') {
-          accProfit += profit;
-        } else {
-          // أي قسم آخر يضاف مباشرة للإجمالي
-          makeupProfit += 0; 
-        }
-      });
-
-      const totalProfit = makeupProfit + accProfit;
-
-      // تحديث الواجهة بالعرض العربي للعملة
-      document.getElementById('makeup-profit').textContent = makeupProfit.toLocaleString('ar-EG') + ' ج.م';
-      document.getElementById('acc-profit').textContent = accProfit.toLocaleString('ar-EG') + ' ج.م';
-      document.getElementById('total-profit').textContent = totalProfit.toLocaleString('ar-EG') + ' ج.م';
+    function saveData() {
+      localStorage.setItem('mosky_products', JSON.stringify(products));
+      localStorage.setItem('mosky_sales', JSON.stringify(sales));
     }
 
-    // تشغيل الحساب فور تحميل الصفحة
-    document.addEventListener('DOMContentLoaded', calculateProfits);
+    function toggleRole() {
+      currentRole = (currentRole === 'admin') ? 'staff' : 'admin';
+      document.getElementById('userRoleDisplay').textContent = currentRole === 'admin' ? 'أدمن' : 'موظف';
+      applyRolePermissions();
+    }
+
+    function applyRolePermissions() {
+      const adminElems = document.querySelectorAll('.admin-only');
+      adminElems.forEach(el => {
+        el.style.display = (currentRole === 'admin') ? '' : 'none';
+      });
+    }
+
+    function switchPage(pageId) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      
+      document.getElementById(`page-${pageId}`).classList.add('active');
+      event.currentTarget.classList.add('active');
+
+      if (pageId === 'reports') updateReports();
+    }
+
+    /* --- POS Logic --- */
+    function renderPosProducts() {
+      const q = document.getElementById('posSearch').value.toLowerCase();
+      const container = document.getElementById('posProductsList');
+      container.innerHTML = '';
+
+      products.filter(p => p.name.toLowerCase().includes(q) || p.code.includes(q)).forEach(p => {
+        const item = document.createElement('div');
+        item.style.cssText = "border:1px solid var(--border); padding:10px; border-radius:8px; cursor:pointer; text-align:center; background:#fafafa;";
+        item.onclick = () => addToCart(p);
+        item.innerHTML = `
+          <div style="font-weight:700;">${p.name}</div>
+          <div style="font-size:0.8rem; color:var(--text-muted);">${p.category}</div>
+          <div style="color:var(--primary); font-weight:800; margin-top:5px;">${p.price} ج</div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function addToCart(product) {
+      const existing = cart.find(item => item.id === product.id);
+      if (existing) {
+        if (existing.qty < product.qty) existing.qty++;
+        else alert('الكمية المتاحة لا تكفي');
+      } else {
+        if(product.qty > 0) {
+          cart.push({ id: product.id, name: product.name, category: product.category, price: product.price, cost: product.cost, qty: 1 });
+        } else {
+          alert('المنتج نفذ من المخزن');
+        }
+      }
+      renderCart();
+    }
+
+    function renderCart() {
+      const tbody = document.getElementById('cartBody');
+      tbody.innerHTML = '';
+      let total = 0;
+
+      cart.forEach((item, idx) => {
+        total += item.price * item.qty;
+        tbody.innerHTML += `
+          <tr>
+            <td>${item.name}</td>
+            <td>
+              <input type="number" value="${item.qty}" min="1" style="width:50px; padding:2px;" onchange="updateCartQty(${idx}, this.value)">
+            </td>
+            <td>${item.price * item.qty}</td>
+            <td><button class="btn btn-danger" style="padding:2px 6px;" onclick="removeFromCart(${idx})">×</button></td>
+          </tr>
+        `;
+      });
+      document.getElementById('cartTotal').textContent = total + ' ج';
+    }
+
+    function updateCartQty(idx, val) {
+      const num = parseInt(val);
+      const prod = products.find(p => p.id === cart[idx].id);
+      if (num <= prod.qty) cart[idx].qty = num;
+      else {
+        alert('الكمية لا تكفي');
+        cart[idx].qty = prod.qty;
+      }
+      renderCart();
+    }
+
+    function removeFromCart(idx) {
+      cart.splice(idx, 1);
+      renderCart();
+    }
+
+    function openCheckoutModal() {
+      if (cart.length === 0) return alert('السلة فارغة');
+      const total = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+      document.getElementById('checkoutTotalText').textContent = `المبلغ المطلوب: ${total} ج`;
+      document.getElementById('checkoutModal').classList.add('active');
+    }
+
+    function processSale() {
+      const total = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+      const sale = {
+        id: 'INV-' + Date.now().toString().slice(-6),
+        date: new Date().toISOString(),
+        items: [...cart],
+        total: total
+      };
+
+      // الخصم من المخزون
+      cart.forEach(cItem => {
+        const p = products.find(p => p.id === cItem.id);
+        if (p) p.qty -= cItem.qty;
+      });
+
+      sales.push(sale);
+      saveData();
+      
+      closeModal('checkoutModal');
+      cart = [];
+      renderCart();
+      renderPosProducts();
+      renderInventory();
+      alert('تم إتمام عملية البيع بنجاح!');
+    }
+
+    /* --- Inventory Logic --- */
+    function renderInventory() {
+      const q = document.getElementById('invSearch').value.toLowerCase();
+      const tbody = document.getElementById('inventoryBody');
+      tbody.innerHTML = '';
+
+      products.filter(p => p.name.toLowerCase().includes(q) || p.code.includes(q)).forEach(p => {
+        tbody.innerHTML += `
+          <tr>
+            <td>${p.code}</td>
+            <td>${p.name}</td>
+            <td>${p.category}</td>
+            <td>${p.cost} ج</td>
+            <td>${p.price} ج</td>
+            <td><strong style="${p.qty < 5 ? 'color:red' : ''}">${p.qty}</strong></td>
+            <td class="admin-only">
+              <button class="btn" style="padding:4px 8px;" onclick="editProduct('${p.id}')">تعديل</button>
+            </td>
+          </tr>
+        `;
+      });
+      applyRolePermissions();
+    }
+
+    function openAddProductModal() {
+      document.getElementById('productForm').reset();
+      document.getElementById('pId').value = '';
+      document.getElementById('modalProductTitle').textContent = 'إضافة منتج جديد';
+      document.getElementById('productModal').classList.add('active');
+    }
+
+    function editProduct(id) {
+      const p = products.find(item => item.id === id);
+      if (!p) return;
+      document.getElementById('pId').value = p.id;
+      document.getElementById('pCode').value = p.code;
+      document.getElementById('pName').value = p.name;
+      document.getElementById('pCategory').value = p.category;
+      document.getElementById('pCost').value = p.cost;
+      document.getElementById('pPrice').value = p.price;
+      document.getElementById('pQty').value = p.qty;
+      
+      document.getElementById('modalProductTitle').textContent = 'تعديل بيانات المنتج';
+      document.getElementById('productModal').classList.add('active');
+    }
+
+    function saveProduct(e) {
+      e.preventDefault();
+      const id = document.getElementById('pId').value;
+      const productData = {
+        id: id || Date.now().toString(),
+        code: document.getElementById('pCode').value,
+        name: document.getElementById('pName').value,
+        category: document.getElementById('pCategory').value,
+        cost: parseFloat(document.getElementById('pCost').value),
+        price: parseFloat(document.getElementById('pPrice').value),
+        qty: parseInt(document.getElementById('pQty').value)
+      };
+
+      if (id) {
+        const idx = products.findIndex(p => p.id === id);
+        products[idx] = productData;
+      } else {
+        products.push(productData);
+      }
+
+      saveData();
+      renderInventory();
+      renderPosProducts();
+      closeModal('productModal');
+    }
+
+    /* --- Reports Logic with Itemized Department Profits --- */
+    function updateReports() {
+      const period = document.getElementById('reportPeriod').value;
+      const now = new Date();
+      
+      let filteredSales = sales.filter(s => {
+        const sDate = new Date(s.date);
+        if (period === 'today') return sDate.toDateString() === now.toDateString();
+        if (period === 'week') return (now - sDate) / (1000 * 60 * 60 * 24) <= 7;
+        if (period === 'month') return sDate.getMonth() === now.getMonth() && sDate.getFullYear() === now.getFullYear();
+        return true;
+      });
+
+      let totalSalesSum = 0;
+      let totalOverallProfit = 0;
+
+      filteredSales.forEach(s => {
+        totalSalesSum += s.total;
+      });
+
+      document.getElementById('rTotalSales').textContent = totalSalesSum.toLocaleString('ar-EG') + ' ج';
+      document.getElementById('rInvoiceCount').textContent = filteredSales.length;
+
+      // حساب الأرباح التفصيلية بالأقسام
+      calculateDetailedDepartmentProfits(filteredSales);
+
+      // رسم جدول الفواتير
+      const tbody = document.getElementById('reportsTableBody');
+      tbody.innerHTML = '';
+      filteredSales.forEach(s => {
+        let invoiceProfit = 0;
+        if(s.items) {
+          s.items.forEach(i => invoiceProfit += ((i.price - (i.cost || 0)) * i.qty));
+        }
+        tbody.innerHTML += `
+          <tr>
+            <td>${s.id}</td>
+            <td>${new Date(s.date).toLocaleString('ar-EG')}</td>
+            <td>${s.items ? s.items.length : 0}</td>
+            <td>${s.total} ج</td>
+            <td style="color:var(--success); font-weight:700;">${invoiceProfit} ج</td>
+          </tr>
+        `;
+      });
+    }
+
+    function calculateDetailedDepartmentProfits(filteredSales) {
+      let makeupProfit = 0;
+      let accProfit = 0;
+      let otherProfit = 0;
+
+      filteredSales.forEach(sale => {
+        if (!sale.items) return;
+        
+        sale.items.forEach(item => {
+          const sellPrice = item.price || 0;
+          const costPrice = item.cost || item.costPrice || 0;
+          const qty = item.qty || item.quantity || 1;
+          
+          const itemProfit = (sellPrice - costPrice) * qty;
+          const cat = (item.category || '').trim();
+          
+          if (cat === 'مكياج') {
+            makeupProfit += itemProfit;
+          } else if (cat === 'إكسسوارات' || cat === 'اكسسوارات') {
+            accProfit += itemProfit;
+          } else {
+            otherProfit += itemProfit;
+          }
+        });
+      });
+
+      const totalShopProfit = makeupProfit + accProfit + otherProfit;
+
+      document.getElementById('rMakeupProfit').textContent = makeupProfit.toLocaleString('ar-EG') + ' ج';
+      document.getElementById('rAccProfit').textContent = accProfit.toLocaleString('ar-EG') + ' ج';
+      document.getElementById('rOtherProfit').textContent = otherProfit.toLocaleString('ar-EG') + ' ج';
+      document.getElementById('rProfit').textContent = totalShopProfit.toLocaleString('ar-EG') + ' ج';
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('active');
+    }
   </script>
 </body>
 </html>
