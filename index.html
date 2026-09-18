@@ -3,17 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#0a1628" />
+  <meta name="theme-color" content="#1a1614" />
   <link rel="manifest" href="manifest.json" />
   <title>محل أسواق الموسكي</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
     :root {
-      --bg:#050d1a;--surface:#0a1628;--surface2:#0f2040;--border:#1a3a6e;
-      --accent:#1d6fe8;--accent2:#60a5fa;--green:#22c55e;--red:#ef4444;
-      --yellow:#f59e0b;--text:#e0eaff;--muted:#6b8cbc;--radius:14px;
-      --shadow:0 4px 24px rgba(0,0,0,0.5);
-      --accent-glow:0 0 20px rgba(29,111,232,0.3);
+      --bg:#141210;--surface:#1e1b18;--surface2:#2a2520;--border:#3d3530;
+      --accent:#c4a35a;--accent2:#d4b978;--green:#6b9e6e;--red:#c45c5c;
+      --yellow:#c9a227;--text:#f0ebe3;--muted:#9a9085;--radius:12px;
+      --shadow:0 4px 20px rgba(0,0,0,0.4);
+      --accent-glow:0 0 12px rgba(196,163,90,0.2);
     }
     *{margin:0;padding:0;box-sizing:border-box;}
     body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
@@ -25,13 +25,8 @@
     nav{display:flex;gap:2px;flex-wrap:wrap;}
     nav button{background:none;border:none;color:var(--muted);font-family:'Cairo',sans-serif;font-size:0.82rem;padding:7px 12px;border-radius:8px;cursor:pointer;transition:all .2s;white-space:nowrap;}
     nav button:hover{background:var(--surface2);color:var(--text);}
-    nav button.active{background:var(--accent);color:#fff;box-shadow:var(--accent-glow);}
+    nav button.active{background:var(--accent);color:#1a1614;box-shadow:var(--accent-glow);}
     .header-date{font-size:0.78rem;color:var(--muted);}
-
-    /* LOW STOCK ALERT BANNER */
-    .alert-banner{background:rgba(245,158,11,0.12);border:1px solid var(--yellow);border-radius:10px;padding:10px 16px;margin:0 16px 0;display:none;align-items:center;gap:10px;font-size:0.85rem;color:var(--yellow);font-weight:700;}
-    .alert-banner.show{display:flex;}
-    .alert-banner ul{margin:0;padding-right:16px;font-weight:400;color:var(--text);}
 
     /* PAGES */
     .page{display:none;padding:16px;}
@@ -58,7 +53,7 @@
     /* CART */
     .cart-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);display:flex;flex-direction:column;overflow:hidden;}
     .cart-header{padding:14px 18px;border-bottom:1px solid var(--border);font-weight:700;font-size:.95rem;display:flex;justify-content:space-between;align-items:center;}
-    .cart-badge{background:var(--accent);color:#fff;font-size:0.72rem;padding:2px 8px;border-radius:20px;font-weight:700;}
+    .cart-badge{background:var(--accent);color:#1a1614;font-size:0.72rem;padding:2px 8px;border-radius:20px;font-weight:700;}
     .cart-items{flex:1;overflow-y:auto;padding:10px;}
     .cart-items::-webkit-scrollbar{width:4px;}
     .cart-items::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
@@ -69,10 +64,10 @@
     .ci-price{font-size:.78rem;color:var(--muted);}
     .ci-controls{display:flex;align-items:center;gap:6px;}
     .ci-controls button{width:26px;height:26px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:.95rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;}
-    .ci-controls button:hover{background:var(--accent);border-color:var(--accent);}
+    .ci-controls button:hover{background:var(--accent);border-color:var(--accent);color:#1a1614;}
     .ci-controls .qty{font-weight:700;min-width:22px;text-align:center;font-size:.9rem;}
     .ci-del{background:none;border:none;color:var(--red);font-size:.95rem;cursor:pointer;padding:4px;border-radius:6px;}
-    .ci-del:hover{background:rgba(239,68,68,.15);}
+    .ci-del:hover{background:rgba(196,92,92,.15);}
     .cart-footer{padding:14px;border-top:1px solid var(--border);}
     .totals{margin-bottom:14px;}
     .total-row{display:flex;justify-content:space-between;font-size:.85rem;padding:4px 0;color:var(--muted);}
@@ -84,10 +79,10 @@
     .discount-row input::placeholder{color:var(--muted);}
     .discount-row label{font-size:.8rem;color:var(--muted);display:flex;align-items:center;}
     .btn{width:100%;padding:13px;border-radius:10px;border:none;font-family:'Cairo',sans-serif;font-size:.95rem;font-weight:700;cursor:pointer;transition:all .2s;}
-    .btn-primary{background:var(--accent);color:#fff;box-shadow:var(--accent-glow);}
-    .btn-primary:hover{background:#1559c7;transform:translateY(-1px);}
-    .btn-danger{background:rgba(239,68,68,.12);color:var(--red);margin-top:8px;}
-    .btn-danger:hover{background:rgba(239,68,68,.22);}
+    .btn-primary{background:var(--accent);color:#1a1614;box-shadow:var(--accent-glow);}
+    .btn-primary:hover{background:#b8944a;transform:translateY(-1px);}
+    .btn-danger{background:rgba(196,92,92,.12);color:var(--red);margin-top:8px;}
+    .btn-danger:hover{background:rgba(196,92,92,.22);}
     .btn:disabled{opacity:.4;cursor:not-allowed;transform:none;}
 
     /* MODAL */
@@ -105,17 +100,17 @@
     /* PRODUCTS TABLE */
     .page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;}
     .page-title{font-size:1.3rem;font-weight:900;}
-    .btn-sm{padding:9px 18px;border-radius:10px;border:none;font-family:'Cairo',sans-serif;font-size:.85rem;font-weight:700;cursor:pointer;background:var(--accent);color:#fff;transition:all .2s;white-space:nowrap;}
-    .btn-sm:hover{background:#1559c7;}
+    .btn-sm{padding:9px 18px;border-radius:10px;border:none;font-family:'Cairo',sans-serif;font-size:.85rem;font-weight:700;cursor:pointer;background:var(--accent);color:#1a1614;transition:all .2s;white-space:nowrap;}
+    .btn-sm:hover{background:#b8944a;}
     .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
     table{width:100%;border-collapse:collapse;min-width:500px;}
     th,td{padding:12px 14px;text-align:right;font-size:.85rem;border-bottom:1px solid var(--border);}
     th{background:var(--surface);font-weight:700;color:var(--muted);font-size:.78rem;position:sticky;top:0;}
     tr:hover td{background:var(--surface2);}
     .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.75rem;font-weight:700;}
-    .badge-green{background:rgba(34,197,94,.12);color:var(--green);}
-    .badge-red{background:rgba(239,68,68,.12);color:var(--red);}
-    .badge-yellow{background:rgba(245,158,11,.12);color:var(--yellow);}
+    .badge-green{background:rgba(107,158,110,.15);color:var(--green);}
+    .badge-red{background:rgba(196,92,92,.15);color:var(--red);}
+    .badge-yellow{background:rgba(201,162,39,.15);color:var(--yellow);}
     .action-btns{display:flex;gap:5px;flex-wrap:wrap;}
     .action-btn{padding:5px 10px;border-radius:7px;border:1px solid var(--border);background:none;color:var(--text);font-family:'Cairo',sans-serif;font-size:.78rem;cursor:pointer;transition:all .15s;white-space:nowrap;}
     .action-btn:hover{background:var(--surface2);}
@@ -141,7 +136,7 @@
     .section-title{font-size:.95rem;font-weight:700;margin-bottom:12px;color:var(--muted);}
 
     /* NET PROFIT CARD */
-    .net-profit-card{background:linear-gradient(135deg,var(--surface),#0a2050);border:1px solid var(--accent);border-radius:var(--radius);padding:20px;margin-bottom:22px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;box-shadow:var(--accent-glow);}
+    .net-profit-card{background:linear-gradient(135deg,var(--surface),#2a2418);border:1px solid var(--accent);border-radius:var(--radius);padding:20px;margin-bottom:22px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;box-shadow:var(--accent-glow);}
     .net-profit-card .label{font-size:.9rem;color:var(--accent2);font-weight:700;}
     .net-profit-card .value{font-size:2rem;font-weight:900;}
 
@@ -149,7 +144,7 @@
     .filter-bar{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;align-items:center;}
     .filter-btn{padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--muted);font-family:'Cairo',sans-serif;font-size:.82rem;cursor:pointer;transition:all .2s;white-space:nowrap;}
     .filter-btn:hover{background:var(--surface2);color:var(--text);}
-    .filter-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+    .filter-btn.active{background:var(--accent);color:#1a1614;border-color:var(--accent);}
     .filter-bar input[type=date]{background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Cairo',sans-serif;font-size:.82rem;padding:7px 12px;outline:none;}
 
     /* PRINT — مضبوطة على ثيرمال 80مم */
@@ -170,7 +165,7 @@
     }
 
     /* TOAST */
-    .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--accent);color:#fff;padding:11px 22px;border-radius:30px;font-weight:700;font-size:.88rem;z-index:999;transition:transform .3s ease;white-space:nowrap;box-shadow:var(--accent-glow);}
+    .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--accent);color:#1a1614;padding:11px 22px;border-radius:30px;font-weight:700;font-size:.88rem;z-index:999;transition:transform .3s ease;white-space:nowrap;box-shadow:var(--accent-glow);}
     .toast.show{transform:translateX(-50%) translateY(0);}
     .toast.error{background:var(--red);}
     .toast.warn{background:var(--yellow);color:#000;}
@@ -224,7 +219,7 @@
     .department-switch{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:0 12px;}
     .department-label{font-size:.75rem;color:var(--muted);font-weight:700;}
     .department-btn{border:1px solid var(--border);background:var(--surface2);color:var(--muted);padding:6px 11px;border-radius:9px;cursor:pointer;font-family:Cairo,sans-serif;font-size:.76rem;font-weight:700;transition:.15s;}
-    .department-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+    .department-btn.active{background:var(--accent);color:#1a1614;border-color:var(--accent);}
     .dept-title{font-size:.78rem;color:var(--accent2);font-weight:700;margin:0 12px 8px;}
     @media(max-width:700px){.department-switch{order:3;width:100%;margin-top:8px}.department-label{display:none;}}
 
@@ -253,16 +248,10 @@
     </div>
     <p id="loginError" style="color:var(--red);font-size:.8rem;min-height:18px;margin-bottom:10px;"></p>
     <button onclick="doLogin()"
-      style="width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:1rem;font-family:Cairo,sans-serif;font-weight:700;cursor:pointer;">
+      style="width:100%;padding:12px;background:var(--accent);color:#1a1614;border:none;border-radius:10px;font-size:1rem;font-family:Cairo,sans-serif;font-weight:700;cursor:pointer;">
       دخول ←
     </button>
   </div>
-</div>
-
-<!-- LOW STOCK BANNER -->
-<div class="alert-banner" id="lowStockBanner">
-  ⚠️ منتجات قاربت على النفاد:
-  <ul id="lowStockList"></ul>
 </div>
 
 <header>
@@ -1236,7 +1225,6 @@ function refreshCurrentView() {
   if (id === 'page-sale')     renderProductCards();
   if (id === 'page-products') renderProductsTable();
   if (id === 'page-reports')  renderReports();
-  checkLowStock();
 }
 
 // ══════════════════════════════════════════
@@ -1287,20 +1275,8 @@ function importBackup(event) {
 }
 
 // ══════════════════════════════════════════
-//  LOW STOCK ALERT
+//  LOW STOCK PAGE
 // ══════════════════════════════════════════
-function checkLowStock() {
-  const low = products.filter(p => p.stock > 0 && p.stock <= (p.alertAt || 5));
-  const banner = document.getElementById('lowStockBanner');
-  const list   = document.getElementById('lowStockList');
-  if (low.length) {
-    list.innerHTML = low.map(p => `<li>${p.icon} ${p.name} — متبقي <strong>${p.stock}</strong></li>`).join('');
-    banner.classList.add('show');
-  } else {
-    banner.classList.remove('show');
-  }
-}
-
 function renderLowStockPage() {
   const low = getDepartmentProducts()
     .filter(p => p.stock > 0 && p.stock <= (p.alertAt || 5))
@@ -1410,7 +1386,6 @@ function renderProductCards() {
       <div class="p-stock">${p.stock===0?'نفد':low?`⚠️ متبقي ${p.stock}`:`متاح: ${p.stock}`}</div>
     </div>`;
   }).join('');
-  checkLowStock();
 }
 
 // ══════════════════════════════════════════
@@ -1643,7 +1618,6 @@ function saveProduct() {
   saveProducts();
   closeProductForm();
   renderProductsTable();
-  checkLowStock();
   showToast(id ? 'تم تعديل المنتج ✓' : 'تمت إضافة المنتج ✓');
 }
 
@@ -2263,7 +2237,7 @@ function applyRole() {
   const badge = document.getElementById('roleBadge');
   if (role === 'admin') {
     badge.textContent = '👑 أدمن';
-    badge.style.cssText += 'background:rgba(168,139,250,.2);color:var(--accent2);';
+    badge.style.cssText += 'background:rgba(196,163,90,.2);color:var(--accent2);';
   } else {
     badge.textContent = '👤 موظف';
     badge.style.cssText += 'background:rgba(34,197,94,.15);color:var(--green);';
