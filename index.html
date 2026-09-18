@@ -281,6 +281,7 @@
     <button onclick="showPage('expenses')">💸 المصروفات</button>
     <button onclick="showPage('inventory')">📋 الجرد</button>
     <button onclick="showPage('topproducts')">🏆 الأكثر مبيعاً</button>
+    <button onclick="showPage('lowstock')">⚠️ قاربت تخلص</button>
   </nav>
   <div style="display:flex;align-items:center;gap:14px;">
     <span id="syncStatus" style="font-size:.78rem;color:var(--muted);display:flex;align-items:center;gap:5px;">⏳ جاري الاتصال...</span>
@@ -513,6 +514,25 @@
         <th>#</th><th>الصنف</th><th>القطع المباعة</th><th>الإيراد</th><th class="admin-only">الربح</th>
       </tr></thead>
       <tbody id="topProductsTable"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- LOW STOCK PAGE -->
+<div class="page" id="page-lowstock">
+  <div class="page-header">
+    <div class="page-title">⚠️ المنتجات التي قاربت على النفاد</div>
+    <button class="btn-sm" onclick="renderLowStockPage()">🔄 تحديث</button>
+  </div>
+  <p style="color:var(--muted);font-size:.85rem;margin-bottom:16px;">
+    الأصناف التي وصلت إلى حد التنبيه المحدد لها أو أقل — لا تشمل الأصناف المنتهية تمامًا.
+  </p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>الكود</th><th>الصنف</th><th>القسم</th><th>الكمية الحالية</th><th>حد التنبيه</th><th>الحالة</th></tr>
+      </thead>
+      <tbody id="lowStockTable"></tbody>
     </table>
   </div>
 </div>
@@ -1281,18 +1301,39 @@ function checkLowStock() {
   }
 }
 
+function renderLowStockPage() {
+  const low = getDepartmentProducts()
+    .filter(p => p.stock > 0 && p.stock <= (p.alertAt || 5))
+    .sort((a,b) => a.stock - b.stock);
+
+  const tbody = document.getElementById('lowStockTable');
+  if (!tbody) return;
+
+  tbody.innerHTML = low.length ? low.map(p => `
+    <tr>
+      <td>${p.code || '—'}</td>
+      <td>${p.icon || ''} ${p.name}</td>
+      <td>${p.category || '—'}</td>
+      <td style="color:var(--yellow);font-weight:900;">${p.stock}</td>
+      <td>${p.alertAt || 5}</td>
+      <td><span class="badge badge-yellow">قاربت تخلص</span></td>
+    </tr>
+  `).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:30px;">مفيش منتجات قاربت على النفاد 🎉</td></tr>';
+}
+
 // ══════════════════════════════════════════
 //  NAVIGATION
 // ══════════════════════════════════════════
 function showPage(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('nav button').forEach((b,i) => {
-    b.classList.toggle('active', ['sale','products','reports','debts','expenses','inventory','topproducts'][i] === name);
+    b.classList.toggle('active', ['sale','products','reports','debts','expenses','inventory','topproducts','lowstock'][i] === name);
   });
   document.getElementById('page-' + name).classList.add('active');
   if (name === 'products')     renderProductsTable();
   if (name === 'reports')      renderReports();
   if (name === 'sale')         renderProductCards();
+  if (name === 'lowstock')    renderLowStockPage();
   if (name === 'debts')        renderDebts();
   if (name === 'expenses')     renderExpenses();
   if (name === 'inventory')    renderInventory();
@@ -2187,7 +2228,7 @@ function returnSale(saleId) {
 // ══════════════════════════════════════════
 const USERS = {
   'monem123':   { role: 'admin',    name: 'منم (أدمن)' },
-  'yasmine123': { role: 'employee', name: 'ياسمين (موظف)' }
+  'reem123':    { role: 'employee', name: 'ياسمين (موظف)' }
 };
 
 let currentUser = null;
