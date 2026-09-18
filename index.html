@@ -3,20 +3,31 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#1a1614" />
+  <meta name="theme-color" content="#1a1614" id="themeColorMeta" />
   <link rel="manifest" href="manifest.json" />
   <title>محل أسواق الموسكي</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
-    :root {
+    :root, [data-theme="dark"] {
       --bg:#141210;--surface:#1e1b18;--surface2:#2a2520;--border:#3d3530;
       --accent:#c4a35a;--accent2:#d4b978;--green:#6b9e6e;--red:#c45c5c;
       --yellow:#c9a227;--text:#f0ebe3;--muted:#9a9085;--radius:12px;
       --shadow:0 4px 20px rgba(0,0,0,0.4);
       --accent-glow:0 0 12px rgba(196,163,90,0.2);
+      --on-accent:#1a1614;
+    }
+    [data-theme="light"] {
+      --bg:#f5f0e8;--surface:#ffffff;--surface2:#efe9df;--border:#d4cbb8;
+      --accent:#9a7b3c;--accent2:#7a6230;--green:#3d7a45;--red:#b33a3a;
+      --yellow:#a8841a;--text:#2a241c;--muted:#6b6358;--radius:12px;
+      --shadow:0 4px 16px rgba(0,0,0,0.08);
+      --accent-glow:0 0 10px rgba(154,123,60,0.15);
+      --on-accent:#ffffff;
     }
     *{margin:0;padding:0;box-sizing:border-box;}
     body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+    .theme-toggle{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:5px 10px;cursor:pointer;font-family:'Cairo',sans-serif;font-size:.75rem;font-weight:700;display:inline-flex;align-items:center;gap:4px;transition:all .2s;white-space:nowrap;}
+    .theme-toggle:hover{border-color:var(--accent);color:var(--accent);}
 
     /* HEADER */
     header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 16px;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:100;flex-wrap:wrap;gap:8px;}
@@ -25,7 +36,7 @@
     nav{display:flex;gap:2px;flex-wrap:wrap;}
     nav button{background:none;border:none;color:var(--muted);font-family:'Cairo',sans-serif;font-size:0.82rem;padding:7px 12px;border-radius:8px;cursor:pointer;transition:all .2s;white-space:nowrap;}
     nav button:hover{background:var(--surface2);color:var(--text);}
-    nav button.active{background:var(--accent);color:#1a1614;box-shadow:var(--accent-glow);}
+    nav button.active{background:var(--accent);color:var(--on-accent);box-shadow:var(--accent-glow);}
     .header-date{font-size:0.78rem;color:var(--muted);}
 
     /* PAGES */
@@ -53,7 +64,7 @@
     /* CART */
     .cart-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);display:flex;flex-direction:column;overflow:hidden;}
     .cart-header{padding:14px 18px;border-bottom:1px solid var(--border);font-weight:700;font-size:.95rem;display:flex;justify-content:space-between;align-items:center;}
-    .cart-badge{background:var(--accent);color:#1a1614;font-size:0.72rem;padding:2px 8px;border-radius:20px;font-weight:700;}
+    .cart-badge{background:var(--accent);color:var(--on-accent);font-size:0.72rem;padding:2px 8px;border-radius:20px;font-weight:700;}
     .cart-items{flex:1;overflow-y:auto;padding:10px;}
     .cart-items::-webkit-scrollbar{width:4px;}
     .cart-items::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
@@ -64,10 +75,10 @@
     .ci-price{font-size:.78rem;color:var(--muted);}
     .ci-controls{display:flex;align-items:center;gap:6px;}
     .ci-controls button{width:26px;height:26px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:.95rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;}
-    .ci-controls button:hover{background:var(--accent);border-color:var(--accent);color:#1a1614;}
+    .ci-controls button:hover{background:var(--accent);border-color:var(--accent);}
     .ci-controls .qty{font-weight:700;min-width:22px;text-align:center;font-size:.9rem;}
     .ci-del{background:none;border:none;color:var(--red);font-size:.95rem;cursor:pointer;padding:4px;border-radius:6px;}
-    .ci-del:hover{background:rgba(196,92,92,.15);}
+    .ci-del:hover{background:rgba(239,68,68,.15);}
     .cart-footer{padding:14px;border-top:1px solid var(--border);}
     .totals{margin-bottom:14px;}
     .total-row{display:flex;justify-content:space-between;font-size:.85rem;padding:4px 0;color:var(--muted);}
@@ -79,8 +90,8 @@
     .discount-row input::placeholder{color:var(--muted);}
     .discount-row label{font-size:.8rem;color:var(--muted);display:flex;align-items:center;}
     .btn{width:100%;padding:13px;border-radius:10px;border:none;font-family:'Cairo',sans-serif;font-size:.95rem;font-weight:700;cursor:pointer;transition:all .2s;}
-    .btn-primary{background:var(--accent);color:#1a1614;box-shadow:var(--accent-glow);}
-    .btn-primary:hover{background:#b8944a;transform:translateY(-1px);}
+    .btn-primary{background:var(--accent);color:var(--on-accent);box-shadow:var(--accent-glow);}
+    .btn-primary:hover{filter:brightness(1.08);transform:translateY(-1px);}
     .btn-danger{background:rgba(196,92,92,.12);color:var(--red);margin-top:8px;}
     .btn-danger:hover{background:rgba(196,92,92,.22);}
     .btn:disabled{opacity:.4;cursor:not-allowed;transform:none;}
@@ -100,8 +111,8 @@
     /* PRODUCTS TABLE */
     .page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;}
     .page-title{font-size:1.3rem;font-weight:900;}
-    .btn-sm{padding:9px 18px;border-radius:10px;border:none;font-family:'Cairo',sans-serif;font-size:.85rem;font-weight:700;cursor:pointer;background:var(--accent);color:#1a1614;transition:all .2s;white-space:nowrap;}
-    .btn-sm:hover{background:#b8944a;}
+    .btn-sm{padding:9px 18px;border-radius:10px;border:none;font-family:'Cairo',sans-serif;font-size:.85rem;font-weight:700;cursor:pointer;background:var(--accent);color:var(--on-accent);transition:all .2s;white-space:nowrap;}
+    .btn-sm:hover{filter:brightness(1.08);}
     .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
     table{width:100%;border-collapse:collapse;min-width:500px;}
     th,td{padding:12px 14px;text-align:right;font-size:.85rem;border-bottom:1px solid var(--border);}
@@ -136,7 +147,7 @@
     .section-title{font-size:.95rem;font-weight:700;margin-bottom:12px;color:var(--muted);}
 
     /* NET PROFIT CARD */
-    .net-profit-card{background:linear-gradient(135deg,var(--surface),#2a2418);border:1px solid var(--accent);border-radius:var(--radius);padding:20px;margin-bottom:22px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;box-shadow:var(--accent-glow);}
+    .net-profit-card{background:linear-gradient(135deg,var(--surface),var(--surface2));border:1px solid var(--accent);border-radius:var(--radius);padding:20px;margin-bottom:22px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;box-shadow:var(--accent-glow);}
     .net-profit-card .label{font-size:.9rem;color:var(--accent2);font-weight:700;}
     .net-profit-card .value{font-size:2rem;font-weight:900;}
 
@@ -144,7 +155,7 @@
     .filter-bar{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;align-items:center;}
     .filter-btn{padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--muted);font-family:'Cairo',sans-serif;font-size:.82rem;cursor:pointer;transition:all .2s;white-space:nowrap;}
     .filter-btn:hover{background:var(--surface2);color:var(--text);}
-    .filter-btn.active{background:var(--accent);color:#1a1614;border-color:var(--accent);}
+    .filter-btn.active{background:var(--accent);color:var(--on-accent);border-color:var(--accent);}
     .filter-bar input[type=date]{background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Cairo',sans-serif;font-size:.82rem;padding:7px 12px;outline:none;}
 
     /* PRINT — مضبوطة على ثيرمال 80مم */
@@ -165,7 +176,7 @@
     }
 
     /* TOAST */
-    .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--accent);color:#1a1614;padding:11px 22px;border-radius:30px;font-weight:700;font-size:.88rem;z-index:999;transition:transform .3s ease;white-space:nowrap;box-shadow:var(--accent-glow);}
+    .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--accent);color:var(--on-accent);padding:11px 22px;border-radius:30px;font-weight:700;font-size:.88rem;z-index:999;transition:transform .3s ease;white-space:nowrap;box-shadow:var(--accent-glow);}
     .toast.show{transform:translateX(-50%) translateY(0);}
     .toast.error{background:var(--red);}
     .toast.warn{background:var(--yellow);color:#000;}
@@ -219,7 +230,7 @@
     .department-switch{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:0 12px;}
     .department-label{font-size:.75rem;color:var(--muted);font-weight:700;}
     .department-btn{border:1px solid var(--border);background:var(--surface2);color:var(--muted);padding:6px 11px;border-radius:9px;cursor:pointer;font-family:Cairo,sans-serif;font-size:.76rem;font-weight:700;transition:.15s;}
-    .department-btn.active{background:var(--accent);color:#1a1614;border-color:var(--accent);}
+    .department-btn.active{background:var(--accent);color:var(--on-accent);border-color:var(--accent);}
     .dept-title{font-size:.78rem;color:var(--accent2);font-weight:700;margin:0 12px 8px;}
     @media(max-width:700px){.department-switch{order:3;width:100%;margin-top:8px}.department-label{display:none;}}
 
@@ -248,7 +259,7 @@
     </div>
     <p id="loginError" style="color:var(--red);font-size:.8rem;min-height:18px;margin-bottom:10px;"></p>
     <button onclick="doLogin()"
-      style="width:100%;padding:12px;background:var(--accent);color:#1a1614;border:none;border-radius:10px;font-size:1rem;font-family:Cairo,sans-serif;font-weight:700;cursor:pointer;">
+      style="width:100%;padding:12px;background:var(--accent);color:var(--on-accent);border:none;border-radius:10px;font-size:1rem;font-family:Cairo,sans-serif;font-weight:700;cursor:pointer;">
       دخول ←
     </button>
   </div>
@@ -261,6 +272,7 @@
     <button class="department-btn active" data-dept="store" onclick="switchDepartment('store',this)">🏪 المحل</button>
     <button class="department-btn" data-dept="makeup" onclick="switchDepartment('makeup',this)">💄 المكياج</button>
     <button class="department-btn" data-dept="accessories" onclick="switchDepartment('accessories',this)">💍 الإكسسوارات</button>
+    <button class="department-btn" data-dept="all" onclick="switchDepartment('all',this)">📦 مجمع</button>
   </div>
   <nav>
     <button class="active" onclick="showPage('sale')">🛒 البيع</button>
@@ -275,6 +287,7 @@
   <div style="display:flex;align-items:center;gap:14px;">
     <span id="syncStatus" style="font-size:.78rem;color:var(--muted);display:flex;align-items:center;gap:5px;">⏳ جاري الاتصال...</span>
     <span id="roleBadge" style="font-size:.75rem;padding:3px 10px;border-radius:20px;font-weight:700;"></span>
+    <button class="theme-toggle" id="themeToggleBtn" onclick="toggleTheme()" title="تبديل الوضع">🌙 داكن</button>
     <button onclick="doLogout()" style="font-size:.75rem;padding:5px 12px;background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3);border-radius:8px;cursor:pointer;font-family:Cairo,sans-serif;">خروج</button>
     <div class="header-date" id="headerDate"></div>
   </div>
@@ -378,7 +391,7 @@
   </div>
 
   <div class="filter-bar" id="categoryScopeBar" style="justify-content:center;">
-    <span style="font-size:.82rem;color:var(--muted);">التقرير يعرض القسم المختار بالأعلى فقط — الفواتير والمخزون مشتركان.</span>
+    <span style="font-size:.82rem;color:var(--muted);" id="reportsScopeNote">التقرير يعرض القسم المختار بالأعلى — اختر «مجمع» لعرض كل الأقسام معاً.</span>
   </div>
 
   <div class="stats-grid">
@@ -1326,27 +1339,48 @@ updateDate();
 //  DEPARTMENTS / الأقسام
 // ══════════════════════════════════════════
 let currentDepartment = 'store';
-const DEPT_NAMES = {store:'🏪 قسم المحل', makeup:'💄 قسم المكياج', accessories:'💍 قسم الإكسسوارات'};
-const DEPT_CATS = {store:null, makeup:'مكياج', accessories:'إكسسوارات'};
+const DEPT_NAMES = {
+  store:'🏪 قسم المحل',
+  makeup:'💄 قسم المكياج',
+  accessories:'💍 قسم الإكسسوارات',
+  all:'📦 مجمع (المحل + المكياج + الإكسسوارات)'
+};
+const DEPT_CATS = {store:null, makeup:'مكياج', accessories:'إكسسوارات', all:null};
 function productInDepartment(p, dept=currentDepartment){
+  if(dept === 'all') return true;
   if(dept === 'makeup') return p.category === 'مكياج';
   if(dept === 'accessories') return p.category === 'إكسسوارات';
   return p.category !== 'مكياج' && p.category !== 'إكسسوارات';
 }
 function getDepartmentProducts(dept=currentDepartment){ return products.filter(p=>productInDepartment(p,dept)); }
+function getDeptLabel(p){
+  if(p.category === 'مكياج') return '💄 مكياج';
+  if(p.category === 'إكسسوارات') return '💍 إكسسوارات';
+  return '🏪 المحل';
+}
 function switchDepartment(dept, btn){
   currentDepartment = dept;
-  categoryScope = dept === 'makeup' ? 'مكياج' : dept === 'accessories' ? 'إكسسوارات' : 'rest';
+  categoryScope = dept === 'makeup' ? 'مكياج' : dept === 'accessories' ? 'إكسسوارات' : dept === 'all' ? 'all' : 'rest';
   document.querySelectorAll('.department-btn').forEach(b=>b.classList.toggle('active', b.dataset.dept===dept));
   ['saleDeptTitle','productsDeptTitle','reportsDeptTitle'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent=DEPT_NAMES[dept]; });
+  const scopeNote = document.getElementById('reportsScopeNote');
+  if(scopeNote){
+    scopeNote.textContent = dept === 'all'
+      ? 'التقرير يعرض كل الأقسام مجمّعة (المحل + المكياج + الإكسسوارات).'
+      : 'التقرير يعرض القسم المختار بالأعلى — اختر «مجمع» لعرض كل الأقسام معاً.';
+  }
   activeCat = 'all';
   document.querySelectorAll('#categoryFilter .filter-btn').forEach(b=>b.classList.remove('active'));
   const allBtn=document.querySelector('#categoryFilter .filter-btn'); if(allBtn) allBtn.classList.add('active');
   const addBtn=document.querySelector('#page-products .page-header .btn-sm');
-  if(addBtn) addBtn.textContent = dept==='makeup' ? '+ إضافة منتج مكياج' : dept==='accessories' ? '+ إضافة إكسسوار' : '+ إضافة منتج';
+  if(addBtn){
+    if(dept==='makeup') addBtn.textContent = '+ إضافة منتج مكياج';
+    else if(dept==='accessories') addBtn.textContent = '+ إضافة إكسسوار';
+    else addBtn.textContent = '+ إضافة منتج';
+  }
   const catSelect = document.getElementById('fCategory');
   if(catSelect){
-    catSelect.disabled = dept !== 'store';
+    catSelect.disabled = (dept === 'makeup' || dept === 'accessories');
     if(dept==='makeup') catSelect.value='مكياج';
     else if(dept==='accessories') catSelect.value='إكسسوارات';
   }
@@ -1359,6 +1393,7 @@ function updateCategoryButtons(){
     const txt=b.textContent.trim();
     if(currentDepartment==='makeup') b.style.display = txt.includes('مكياج') || txt==='الكل' ? '' : 'none';
     else if(currentDepartment==='accessories') b.style.display = txt.includes('إكسسوارات') || txt==='الكل' ? '' : 'none';
+    else if(currentDepartment==='all') b.style.display = '';
     else b.style.display = (txt.includes('مكياج') || txt.includes('إكسسوارات')) ? 'none' : '';
   });
 }
@@ -2119,18 +2154,34 @@ function renderInventory() {
   document.getElementById('invCostVal').textContent = fmt(costVal);
   document.getElementById('invSellVal').textContent = fmt(sellVal);
   document.getElementById('invOut').textContent     = outCount;
-  document.getElementById('inventoryBody').innerHTML = deptProducts.map(p => {
+  const rowHtml = (p) => {
     const status = p.stock===0 ? '<span class="badge badge-red">نفد</span>' : p.stock<=(p.alertAt||1) ? '<span class="badge badge-yellow">منخفض</span>' : '<span class="badge badge-green">متاح</span>';
     return `<tr>
       <td style="color:var(--muted);font-size:.8rem;">${p.code||'—'}</td>
       <td>${p.icon||'📦'} ${p.name}</td>
-      <td>${p.category}</td>
+      <td>${p.category}${currentDepartment==='all' ? ' <span style="color:var(--muted);font-size:.75rem;">('+getDeptLabel(p)+')</span>' : ''}</td>
       <td style="color:var(--red);">${fmt(p.cost||0)}</td>
       <td style="color:var(--accent2);">${fmt(p.price)}</td>
       <td style="font-weight:700;">${p.stock}</td>
       <td>${status}</td>
     </tr>`;
-  }).join('');
+  };
+  if (currentDepartment === 'all') {
+    const groups = [
+      { title: '🏪 قسم المحل', list: deptProducts.filter(p => p.category !== 'مكياج' && p.category !== 'إكسسوارات') },
+      { title: '💄 قسم المكياج', list: deptProducts.filter(p => p.category === 'مكياج') },
+      { title: '💍 قسم الإكسسوارات', list: deptProducts.filter(p => p.category === 'إكسسوارات') }
+    ];
+    document.getElementById('inventoryBody').innerHTML = groups.map(g => {
+      if (!g.list.length) return '';
+      const subCost = g.list.reduce((s,p)=>s+(p.cost||0)*p.stock,0);
+      const subSell = g.list.reduce((s,p)=>s+p.price*p.stock,0);
+      return `<tr style="background:var(--surface2);"><td colspan="7" style="font-weight:900;color:var(--accent2);padding:12px 14px;">${g.title} — ${g.list.length} صنف | شراء: ${fmt(subCost)} | بيع: ${fmt(subSell)}</td></tr>`
+        + g.list.map(rowHtml).join('');
+    }).join('') || '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px;">لا توجد أصناف</td></tr>';
+  } else {
+    document.getElementById('inventoryBody').innerHTML = deptProducts.map(rowHtml).join('');
+  }
 }
 
 function printInventory() {
@@ -2379,6 +2430,27 @@ if (savedRole && savedName) {
 
 <script>
 // تهيئة القسم الافتراضي بعد تحميل كل الدوال
+
+// ══════════════════════════════════════════
+//  LIGHT / DARK THEME
+// ══════════════════════════════════════════
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('pos_theme', theme);
+  const meta = document.getElementById('themeColorMeta');
+  if (meta) meta.content = theme === 'light' ? '#f5f0e8' : '#1a1614';
+  const btn = document.getElementById('themeToggleBtn');
+  if (btn) btn.textContent = theme === 'light' ? '☀️ فاتح' : '🌙 داكن';
+}
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+  applyTheme(cur === 'dark' ? 'light' : 'dark');
+}
+(function initTheme() {
+  const saved = localStorage.getItem('pos_theme') || 'dark';
+  applyTheme(saved);
+})();
+
 switchDepartment('store', document.querySelector('.department-btn[data-dept="store"]'));
 
 // ══════════════════════════════════════════
